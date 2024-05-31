@@ -9,6 +9,7 @@ using UnityEngine.TextCore.Text;
 public class Player : MonoBehaviour
 {
     [SerializeField] private float      _moveSpeed = 5.0f;
+    [SerializeField] private float      _turnSpeed = 5.0f;
     [SerializeField] private LayerMask  _mouseDetectionLayer;
 
     private Vector3             _movementVelocity;
@@ -36,9 +37,15 @@ public class Player : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hitInfo, Mathf.Infinity, _mouseDetectionLayer))
         {
+            // Vector3 target = hitInfo.point;
+            // target.y = transform.position.y;
+            // transform.LookAt(target);
+
             Vector3 target = hitInfo.point;
             target.y = transform.position.y;
-            transform.LookAt(target);
+            target = target - transform.position;
+            Quaternion lookRot = Quaternion.LookRotation(target);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRot, Time.deltaTime * _turnSpeed);
         }
     }
 

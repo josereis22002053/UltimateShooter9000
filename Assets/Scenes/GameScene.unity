@@ -1322,8 +1322,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b291ad832d94f94097703c3c6b5b145, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _turnSpeed: 5
   _moveSpeed: 5
+  _turnSpeed: 10
   _mouseDetectionLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -1544,13 +1544,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1160711288}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.31624106, y: -0.63087964, z: 0.31416702, w: 0.6350445}
-  m_LocalPosition: {x: 13.89, y: 23.21, z: 0.02}
+  m_LocalRotation: {x: 0.32650557, y: -0.6272114, z: 0.32650557, w: 0.6272114}
+  m_LocalPosition: {x: 13.89, y: 23.21, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 52.945, y: -89.623, z: 0}
+  m_LocalEulerAnglesHint: {x: 55, y: -90, z: 0}
 --- !u!114 &1160711292
 MonoBehaviour:
   m_ObjectHideFlags: 0
