@@ -24,6 +24,11 @@ public class Player : MonoBehaviour
         //Cursor.lockState = CursorLockMode.Confined;
     }
 
+    private void Start()
+    {
+        _controller.enabled = true;
+    }
+
     private void Update()
     {
         if (_networkObject.IsLocalPlayer)
