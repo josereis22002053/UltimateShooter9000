@@ -8,14 +8,10 @@ using UnityEngine.TextCore.Text;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] private float _turnSpeed = 5.0f;
-    [SerializeField] private float _moveSpeed = 5.0f;
-    [SerializeField] private LayerMask _mouseDetectionLayer;
-    Plane plane = new Plane(Vector3.up, 0);
-    private Vector3 mouseWorldPosition;
-    private Vector3 mouseScreenPos;
-    private Vector3 _movementVelocity;
-    private Vector3 _rotationVelocity;
+    [SerializeField] private float      _moveSpeed = 5.0f;
+    [SerializeField] private LayerMask  _mouseDetectionLayer;
+
+    private Vector3             _movementVelocity;
     private CharacterController _controller;
 
     private void Awake()
@@ -25,11 +21,7 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        //if (Input.GetMouseButtonDown(0)) 
-        //LookAtMouse();
-
         RotateToMouse();
-        //UpdateRotation();
     }
 
     private void FixedUpdate()
@@ -56,17 +48,9 @@ public class Player : MonoBehaviour
         _movementVelocity.x = Input.GetAxis("Horizontal") * _moveSpeed;
     }
 
-    private void UpdateRotation()
-    {
-        //transform.Rotate(Input.GetAxis("Horizontal") * Vector3.up * (_turnSpeed * Time.deltaTime));
-
-        transform.rotation = Quaternion.LookRotation(_movementVelocity, Vector3.up);
-    }
-
     private void UpdatePosition()
     {
         Vector3 motion = _movementVelocity * Time.fixedDeltaTime;
         _controller.Move(transform.TransformVector(motion));
-        //UpdateRotation();
     }
 }
