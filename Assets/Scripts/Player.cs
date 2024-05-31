@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
@@ -14,21 +15,28 @@ public class Player : MonoBehaviour
 
     private Vector3             _movementVelocity;
     private CharacterController _controller;
+    private NetworkObject       _networkObject;
 
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
+        _networkObject = GetComponent<NetworkObject>();
+        //Cursor.lockState = CursorLockMode.Confined;
     }
 
     private void Update()
     {
-        RotateToMouse();
+        if (_networkObject.IsLocalPlayer)
+            RotateToMouse();
     }
 
     private void FixedUpdate()
     {
-        UpdateMovementVelocity();
-        UpdatePosition();
+        if (_networkObject.IsLocalPlayer)
+        {
+            UpdateMovementVelocity();
+            UpdatePosition();
+        }
     }
 
     private void RotateToMouse()
