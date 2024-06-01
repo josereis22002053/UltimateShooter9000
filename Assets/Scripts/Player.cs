@@ -7,20 +7,25 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TextCore.Text;
 
-public class Player : MonoBehaviour
+public class Player : NetworkBehaviour
 {
     [SerializeField] private float      _moveSpeed = 5.0f;
     [SerializeField] private float      _turnSpeed = 5.0f;
     [SerializeField] private LayerMask  _mouseDetectionLayer;
+    [SerializeField] private Transform  _shootPoint;
+    [SerializeField] private Bullet     _localBulletPrefab;
+    [SerializeField] private Bullet     _networkBulletPrefab;
 
     private Vector3             _movementVelocity;
     private CharacterController _controller;
     private NetworkObject       _networkObject;
+    private int                 _projectileId;
 
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
         _networkObject = GetComponent<NetworkObject>();
+        _projectileId = 0;
         //Cursor.lockState = CursorLockMode.Confined;
     }
 
@@ -32,7 +37,11 @@ public class Player : MonoBehaviour
     private void Update()
     {
         if (_networkObject.IsLocalPlayer)
+        {
             RotateToMouse();
+
+            if (Input.GetMouseButtonDown(0)) Shoot(_shootPoint.position, _shootPoint.rotation);
+        }
     }
 
     private void FixedUpdate()
@@ -72,5 +81,36 @@ public class Player : MonoBehaviour
     {
         Vector3 motion = _movementVelocity * Time.fixedDeltaTime;
         _controller.Move(transform.TransformVector(motion));
+    }
+
+    private void Shoot(Vector3 pos, Quaternion rot)
+    {
+        var bullet = Instantiate(_localBulletPrefab, _shootPoint.position, _shootPoint.rotation);
+        bullet.ShotTime = NetworkManager.Singleton.ServerTime.TimeAsFloat;
+        bullet.Origin = _shootPoint.position;
+        bullet.Direction = _shootPoint.forward;
+        bullet.PlayerId = OwnerClientId;
+        bullet.ProjectileId = _projectileId;
+
+        RequestBulletServerRpc(pos, rot, _shootPoint.forward,
+                               NetworkManager.Singleton.ServerTime.TimeAsFloat, OwnerClientId, _projectileId);
+
+        _projectileId++;
+    }
+
+    [ServerRpc]
+    void RequestBulletServerRpc(Vector3 pos, Quaternion rotation, Vector3 direction, float shotTime, ulong playerId, int projectileId)
+    {
+        var spawnedObj = Instantiate(_networkBulletPrefab, pos, rotation);
+        spawnedObj.ShotTime = shotTime;
+        spawnedObj.Origin = pos;
+        spawnedObj.Direction = direction;
+        spawnedObj.PlayerId =playerId;
+        spawnedObj.ProjectileId = projectileId;
+
+        var netObj = spawnedObj.GetComponent<NetworkObject>();
+        netObj.Spawn();
+
+        spawnedObj.SyncClients();
     }
 }

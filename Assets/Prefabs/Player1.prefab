@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1032824837110775718
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 84275863963981788}
+  m_Layer: 0
+  m_Name: Shootpoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &84275863963981788
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1032824837110775718}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.808}
+  m_LocalScale: {x: 10.2055645, y: 12.01043, z: 1.6468556}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7457350515128126931}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1173310027259089915
 GameObject:
   m_ObjectHideFlags: 0
@@ -79,6 +110,11 @@ MonoBehaviour:
   _mouseDetectionLayer:
     serializedVersion: 2
     m_Bits: 64
+  _shootPoint: {fileID: 84275863963981788}
+  _localBulletPrefab: {fileID: 6222496382384113378, guid: ab568df03a9dbf643acb6376b8196e2b,
+    type: 3}
+  _networkBulletPrefab: {fileID: 2495150882096009823, guid: f7d2f3f59d1ef604a90b769af8e39d6a,
+    type: 3}
 --- !u!114 &685710050205741730
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -331,7 +367,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0.133}
   m_LocalScale: {x: 0.09798576, y: 0.08326097, z: 0.6072178}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 84275863963981788}
   m_Father: {fileID: 657638674327547217}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3629467440767954082
