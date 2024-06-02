@@ -125,18 +125,8 @@ MonoBehaviour:
   ShotTime: 0
   Origin: {x: 0, y: 0, z: 0}
   Direction: {x: 0, y: 0, z: 0}
-  RemotePlayerId:
-    m_InternalValue: 0
-  RemoteProjectileId:
-    m_InternalValue: -1
-  RemoteShotTime:
-    m_InternalValue: 0
-  RemoteOrigin:
-    m_InternalValue: {x: 0, y: 0, z: 0}
-  RemoteDirection:
-    m_InternalValue: {x: 0, y: 0, z: 0}
   _damage: 50
-  _speed: 5
+  _speed: 20
   _hitDetectionLayer:
     serializedVersion: 2
     m_Bits: 55

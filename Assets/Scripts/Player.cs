@@ -6,32 +6,54 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TextCore.Text;
+using TMPro;
 
 public class Player : NetworkBehaviour
 {
+    private const float MAX_HEALTH = 100.0f;
+
+    public ulong    PlayerId;
+    public Team     Team;
+
     [SerializeField] private float      _moveSpeed = 5.0f;
     [SerializeField] private float      _turnSpeed = 5.0f;
     [SerializeField] private LayerMask  _mouseDetectionLayer;
     [SerializeField] private Transform  _shootPoint;
     [SerializeField] private Bullet     _localBulletPrefab;
     [SerializeField] private Bullet     _networkBulletPrefab;
+    [SerializeField] private TextMeshProUGUI _hpText;
+    [SerializeField] private Renderer _bodyRenderer;
+    [SerializeField] private Material _normalBodyMaterial;
+    [SerializeField] private Material _damagedBodyMaterial;
 
     private Vector3             _movementVelocity;
     private CharacterController _controller;
     private NetworkObject       _networkObject;
     private int                 _projectileId;
+    private int                 _deaths;
+    private CanvasManager       _canvasManager;
+
+    private NetworkVariable<float> _health = new();
 
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
         _networkObject = GetComponent<NetworkObject>();
         _projectileId = 0;
-        //Cursor.lockState = CursorLockMode.Confined;
+        _deaths = 0;
     }
+
 
     private void Start()
     {
         _controller.enabled = true;
+        _canvasManager = FindObjectOfType<CanvasManager>();
+        Debug.Log(Team);
+
+        if (NetworkManager.Singleton.IsServer)
+            _health.Value = MAX_HEALTH;
+
+        _health.OnValueChanged += HealthOnValueChanged;
     }
 
     private void Update()
@@ -42,6 +64,9 @@ public class Player : NetworkBehaviour
 
             if (Input.GetMouseButtonDown(0)) Shoot(_shootPoint.position, _shootPoint.rotation);
         }
+
+        _hpText.transform.parent.transform.LookAt(Camera.main.transform);
+        _hpText.text = $"HP: {_health.Value}";
     }
 
     private void FixedUpdate()
@@ -112,5 +137,50 @@ public class Player : NetworkBehaviour
         netObj.Spawn();
 
         spawnedObj.SyncClients();
+    }
+
+    public void TakeDamage(float damageAmount)
+    {
+        _health.Value = Mathf.Clamp(_health.Value - damageAmount, 0 , 100);
+    }
+
+    [ClientRpc]
+    private void UpdateHeatlhClientRpc(float newHealth)
+    {
+        StartCoroutine(DisplayHitFeedback());
+        _health.Value = newHealth;
+    }
+
+    [ClientRpc]
+    private void UpdateScoreUIClientRpc(Team team, string score)
+    {
+        _canvasManager.UpdateScoreUI(team, score);
+    }
+
+    private IEnumerator DisplayHitFeedback()
+    {
+        _bodyRenderer.material = _damagedBodyMaterial;
+        yield return new WaitForSeconds(0.15f);
+        _bodyRenderer.material = _normalBodyMaterial;
+    }
+
+    [ClientRpc]
+    public void InitializePlayerClientRpc(ulong playerId, Team team)
+    {
+        PlayerId = playerId;
+        Team = team;
+    }
+
+    private void HealthOnValueChanged(float oldValue, float newValue)
+    {
+        if (oldValue > newValue) StartCoroutine(DisplayHitFeedback());
+
+        if (_health.Value <= 0)
+        {
+            _deaths++;
+            _canvasManager.UpdateScoreUI(Team, _deaths.ToString());
+        }
+
+        Debug.Log($"Player {PlayerId} took damage. Old health = {oldValue} | New health = {_health.Value}");
     }
 }

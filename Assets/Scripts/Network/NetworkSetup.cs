@@ -81,23 +81,6 @@ public class NetworkSetup : MonoBehaviour
     private void OnClientConnect(ulong clientId)
     {
         Debug.Log($"Player {clientId} connected, prefab index = {_playerPrefabIndex}!");
-        //     // Check a free spot for this player
-        //     var spawnPos = Vector3.zero;
-        //     var currentPlayers = FindObjectsOfType<Wyzard>();
-        //     foreach (var playerSpawnLocation in playerSpawnLocations)
-        //     {
-        //         var closestDist = float.MaxValue;
-        //         foreach (var player in currentPlayers)
-        //         {
-        //             float d = Vector3.Distance(player.transform.position, playerSpawnLocation.position);
-        //             closestDist = Mathf.Min(closestDist, d);
-        //         }
-        //         if (closestDist > 20)
-        //         {
-        //             spawnPos = playerSpawnLocation.position;
-        //             break;
-        //         }
-        //     }
 
         // Decide which player is spawning
         Transform[] spawnPositions = _playerPrefabIndex == 0 ? _player1SpawnPoints : _player2SpawnPoints;
@@ -111,6 +94,22 @@ public class NetworkSetup : MonoBehaviour
         var prefabNetworkObject = spawnedObject.GetComponent<NetworkObject>();
         prefabNetworkObject.SpawnAsPlayerObject(clientId, true);
         prefabNetworkObject.ChangeOwnership(clientId);
+
+        var playerToSpawn = spawnedObject.GetComponent<Player>();
+        playerToSpawn.PlayerId = clientId;
+
+        Team playerToSpawnTeam = _playerPrefabIndex == 0 ? Team.Blue : Team.Green;
+        playerToSpawn.Team = playerToSpawnTeam;
+
+        var clientRpcParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = new ulong[] { clientId }
+            }
+        };
+        
+        playerToSpawn.InitializePlayerClientRpc(clientId, playerToSpawnTeam);
         //playerPrefabIndex = (playerPrefabIndex + 1) % playerPrefabs.Length;
         _playerPrefabIndex++;
     }

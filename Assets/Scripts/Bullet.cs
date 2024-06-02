@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -41,10 +42,25 @@ public class Bullet : NetworkBehaviour
             var hitCheckDir = transform.position - _prevPos;
             var hits = Physics.RaycastAll(_prevPos, hitCheckDir, hitCheckDir.magnitude, _hitDetectionLayer);
 
-            if (hits.Length > 0) Destroy(gameObject);
+            if (hits.Length > 0)
+            {
+                foreach (var hit in hits)
+                {
+                    if (hit.transform.TryGetComponent<Player>(out Player player))
+                    {
+                        if (player.PlayerId != PlayerId)
+                        {
+                            player.TakeDamage(_damage);
+                            Debug.Log($"Player {PlayerId} has hit Player {player.PlayerId}");
+                        }
+                    }
+                }
+                Destroy(gameObject);
+            }
 
             _prevPos = transform.position;
         }
+
     }
 
     private void ComputePosition()
