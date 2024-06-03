@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 33695856}
   m_Layer: 0
   m_Name: Spawn2
-  m_TagString: Untagged
+  m_TagString: SpawnPosition
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -165,7 +165,7 @@ GameObject:
   - component: {fileID: 83113653}
   m_Layer: 0
   m_Name: Spawn2
-  m_TagString: Untagged
+  m_TagString: SpawnPosition
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -660,7 +660,7 @@ GameObject:
   - component: {fileID: 661057294}
   m_Layer: 0
   m_Name: Spawn1
-  m_TagString: Untagged
+  m_TagString: SpawnPosition
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -761,7 +761,7 @@ MonoBehaviour:
     SpawnTimeout: 1
     EnableNetworkLogs: 1
     OldPrefabList: []
-  RunInBackground: 1
+  RunInBackground: 0
   LogLevel: 1
 --- !u!4 &812587840
 Transform:
@@ -790,7 +790,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4061e461d98bbdf489c4790668fe95f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _forceServer: 0
+  _forceServer: 1
   _playerPrefabs:
   - {fileID: 5561240157354569291, guid: 641f96aeecb3f3644857d3d34294a551, type: 3}
   - {fileID: 6148273720070031979, guid: 8d8e91ca634d90a4da9c1f714f5983f6, type: 3}
@@ -1911,7 +1911,7 @@ GameObject:
   - component: {fileID: 1563300903}
   m_Layer: 0
   m_Name: Spawn1
-  m_TagString: Untagged
+  m_TagString: SpawnPosition
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

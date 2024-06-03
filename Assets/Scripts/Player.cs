@@ -18,6 +18,7 @@ public class Player : NetworkBehaviour
 
     [SerializeField] private float      _moveSpeed = 5.0f;
     [SerializeField] private float      _turnSpeed = 5.0f;
+    [SerializeField] private float      _invulnerabilityTime = 3.0f;
     [SerializeField] private LayerMask  _mouseDetectionLayer;
     [SerializeField] private Transform  _shootPoint;
     [SerializeField] private Bullet     _localBulletPrefab;
@@ -26,14 +27,19 @@ public class Player : NetworkBehaviour
     [SerializeField] private Renderer _bodyRenderer;
     [SerializeField] private Material _normalBodyMaterial;
     [SerializeField] private Material _damagedBodyMaterial;
+    
+    private GameObject _normalVXF;
+    private GameObject _invulnerableVXF;
 
     private Vector3             _movementVelocity;
     private CharacterController _controller;
     private NetworkObject       _networkObject;
     private int                 _projectileId;
     private int                 _deaths;
+    private List<Transform>     _spawnPositions;
 
     private NetworkVariable<float> _health = new();
+    public NetworkVariable<bool> CanTakeDamage = new();
 
     public event Action<Team, int> PlayerDied;
 
@@ -43,6 +49,14 @@ public class Player : NetworkBehaviour
         _networkObject = GetComponent<NetworkObject>();
         _projectileId = 0;
         _deaths = 0;
+        
+        _normalVXF = transform.GetChild(0).gameObject;
+        _invulnerableVXF = transform.GetChild(1).gameObject;
+
+        _normalVXF.SetActive(true);
+        _invulnerableVXF.SetActive(false);
+
+        _spawnPositions = new List<Transform>();
     }
 
 
@@ -52,11 +66,20 @@ public class Player : NetworkBehaviour
         Debug.Log(Team);
 
         if (NetworkManager.Singleton.IsServer)
+        {
             _health.Value = MAX_HEALTH;
+            CanTakeDamage.Value = true;
+        }
+           
 
         _health.OnValueChanged += HealthOnValueChanged;
+        CanTakeDamage.OnValueChanged += CanTakeDamageOnValueChanged;
 
         FindObjectOfType<MatchManager>().PlayerPrefabInstantiated();
+
+        var spawnPositions = GameObject.FindGameObjectsWithTag("SpawnPosition");
+        foreach (var spawn in spawnPositions)
+            _spawnPositions.Add(spawn.transform);
     }
 
     private void Update()
@@ -169,10 +192,67 @@ public class Player : NetworkBehaviour
         {
             _deaths++;
             Team teamToUpdate = Team == Team.Blue ? Team.Green : Team.Blue;
+
+            if (IsServer) StartCoroutine(Respawn());
+
             OnPlayerDied(teamToUpdate, _deaths);
         }
 
         Debug.Log($"Player {PlayerId} took damage. Old health = {oldValue} | New health = {_health.Value}");
+    }
+
+    private void CanTakeDamageOnValueChanged(bool oldValue, bool newValue)
+    {
+        if (newValue)
+        {
+            _normalVXF.SetActive(true);
+            _invulnerableVXF.SetActive(false);
+        }
+        else
+        {
+            _normalVXF.SetActive(false);
+            _invulnerableVXF.SetActive(true);
+        }
+    }
+
+    private IEnumerator Respawn()
+    {
+        CanTakeDamage.Value = false;
+        SetPosition(GetRandomSpawnPosition());
+
+        yield return new WaitForSeconds(_invulnerabilityTime);
+
+        CanTakeDamage.Value = true;
+        _health.Value = MAX_HEALTH;
+    }
+
+    private void SetPosition(Vector3 newPos)
+    {
+        if (IsServer)
+        {
+            var clientRpcParams = new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams
+                {
+                    TargetClientIds = new ulong[] { OwnerClientId }
+                }
+            };
+
+            SetPositionClientRpc(newPos, clientRpcParams);
+        }
+    }
+
+    [ClientRpc]
+    private void SetPositionClientRpc(Vector3 newPos, ClientRpcParams clientRpcParams = default)
+    {
+        _controller.enabled = false;
+        transform.position = newPos;
+        _controller.enabled = true;
+    }
+
+    private Vector3 GetRandomSpawnPosition()
+    {
+        return  _spawnPositions[UnityEngine.Random.Range(0, _spawnPositions.Count)].position;
     }
 
     private void OnPlayerDied(Team team, int deathAmount)

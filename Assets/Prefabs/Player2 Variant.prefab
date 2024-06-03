@@ -13,10 +13,25 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 951099334
       objectReference: {fileID: 0}
+    - target: {fileID: 802227512368489113, guid: 641f96aeecb3f3644857d3d34294a551,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 6ca65037200989740989771c4fa4f824, type: 2}
     - target: {fileID: 1173310027259089915, guid: 641f96aeecb3f3644857d3d34294a551,
         type: 3}
       propertyPath: m_Name
       value: Player2 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 1506359513195894334, guid: 641f96aeecb3f3644857d3d34294a551,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2673870270460966375, guid: 641f96aeecb3f3644857d3d34294a551,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3509279694823481642, guid: 641f96aeecb3f3644857d3d34294a551,
         type: 3}

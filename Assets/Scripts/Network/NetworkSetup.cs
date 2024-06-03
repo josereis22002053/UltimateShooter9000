@@ -110,6 +110,7 @@ public class NetworkSetup : MonoBehaviour
         };
         
         playerToSpawn.InitializePlayerClientRpc(clientId, playerToSpawnTeam);
+        //playerToSpawn.CanTakeDamage.Value = true;
         //playerPrefabIndex = (playerPrefabIndex + 1) % playerPrefabs.Length;
         _playerPrefabIndex++;
     }
