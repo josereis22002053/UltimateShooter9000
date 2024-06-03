@@ -32,7 +32,6 @@ public class Player : NetworkBehaviour
     private NetworkObject       _networkObject;
     private int                 _projectileId;
     private int                 _deaths;
-    private CanvasManager       _canvasManager;
 
     private NetworkVariable<float> _health = new();
 
@@ -50,7 +49,6 @@ public class Player : NetworkBehaviour
     private void Start()
     {
         _controller.enabled = true;
-        _canvasManager = FindObjectOfType<CanvasManager>();
         Debug.Log(Team);
 
         if (NetworkManager.Singleton.IsServer)
@@ -149,19 +147,6 @@ public class Player : NetworkBehaviour
         _health.Value = Mathf.Clamp(_health.Value - damageAmount, 0 , 100);
     }
 
-    [ClientRpc]
-    private void UpdateHeatlhClientRpc(float newHealth)
-    {
-        StartCoroutine(DisplayHitFeedback());
-        _health.Value = newHealth;
-    }
-
-    [ClientRpc]
-    private void UpdateScoreUIClientRpc(Team team, string score)
-    {
-        //_canvasManager.UpdateScoreUI(team, score);
-    }
-
     private IEnumerator DisplayHitFeedback()
     {
         _bodyRenderer.material = _damagedBodyMaterial;
@@ -183,7 +168,6 @@ public class Player : NetworkBehaviour
         if (_health.Value <= 0)
         {
             _deaths++;
-            //_canvasManager.UpdateScoreUI(Team, _deaths.ToString());
             Team teamToUpdate = Team == Team.Blue ? Team.Green : Team.Blue;
             OnPlayerDied(teamToUpdate, _deaths);
         }
