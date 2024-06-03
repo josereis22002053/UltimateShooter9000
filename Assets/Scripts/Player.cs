@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TextCore.Text;
 using TMPro;
+using System;
 
 public class Player : NetworkBehaviour
 {
@@ -35,6 +36,8 @@ public class Player : NetworkBehaviour
 
     private NetworkVariable<float> _health = new();
 
+    public event Action<Team, int> PlayerDied;
+
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
@@ -54,6 +57,8 @@ public class Player : NetworkBehaviour
             _health.Value = MAX_HEALTH;
 
         _health.OnValueChanged += HealthOnValueChanged;
+
+        FindObjectOfType<MatchManager>().PlayerPrefabInstantiated();
     }
 
     private void Update()
@@ -154,7 +159,7 @@ public class Player : NetworkBehaviour
     [ClientRpc]
     private void UpdateScoreUIClientRpc(Team team, string score)
     {
-        _canvasManager.UpdateScoreUI(team, score);
+        //_canvasManager.UpdateScoreUI(team, score);
     }
 
     private IEnumerator DisplayHitFeedback()
@@ -178,9 +183,16 @@ public class Player : NetworkBehaviour
         if (_health.Value <= 0)
         {
             _deaths++;
-            _canvasManager.UpdateScoreUI(Team, _deaths.ToString());
+            //_canvasManager.UpdateScoreUI(Team, _deaths.ToString());
+            Team teamToUpdate = Team == Team.Blue ? Team.Green : Team.Blue;
+            OnPlayerDied(teamToUpdate, _deaths);
         }
 
         Debug.Log($"Player {PlayerId} took damage. Old health = {oldValue} | New health = {_health.Value}");
+    }
+
+    private void OnPlayerDied(Team team, int deathAmount)
+    {
+        PlayerDied?.Invoke(team, deathAmount);
     }
 }
