@@ -8,7 +8,9 @@ public class CanvasManager : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI    _blueTeamScore;
     [SerializeField] private TextMeshProUGUI    _greenTeamScore;
+    [SerializeField] private GameObject         _gameStartScreen;
     [SerializeField] private GameObject         _endScreen;
+    [SerializeField] private TextMeshProUGUI    _gameStartTimer;
     [SerializeField] private TextMeshProUGUI    _result;
 
     public void UpdateScoreUI(Team team, int newScore)
@@ -21,10 +23,12 @@ public class CanvasManager : MonoBehaviour
 
     private void Start()
     {
+        _gameStartScreen.SetActive(false);
         _endScreen.SetActive(false);
 
         MatchManager matchManager = FindObjectOfType<MatchManager>();
-        matchManager.gameStarted += SubscribeToPlayers;
+        matchManager.gameStarting += SubscribeToPlayers;
+        matchManager.gameStarting += DisplayGameStartScreen;
         matchManager.GameEnded += DisplayResult;
     }
 
@@ -64,5 +68,28 @@ public class CanvasManager : MonoBehaviour
                 break;
             }
         }
+    }
+
+    private void DisplayGameStartScreen()
+    {
+        StartCoroutine(DisplayGameStartScreenCR());
+    }
+
+    private IEnumerator DisplayGameStartScreenCR()
+    {
+        int timer = 3;
+        _gameStartTimer.text = $"Game starting in {timer}";
+        _gameStartScreen.SetActive(true);
+        yield return new WaitForSeconds(1);
+
+        timer--;
+        _gameStartTimer.text = $"Game starting in {timer}";
+        yield return new WaitForSeconds(1);
+
+        timer--;
+        _gameStartTimer.text = $"Game starting in {timer}";
+        yield return new WaitForSeconds(1);
+
+        _gameStartScreen.SetActive(false);
     }
 }

@@ -37,6 +37,7 @@ public class Player : NetworkBehaviour
     private int                 _projectileId;
     private int                 _deaths;
     private List<Transform>     _spawnPositions;
+    private bool                _canMove;
 
     private NetworkVariable<float> _health = new();
     public NetworkVariable<bool> CanTakeDamage = new();
@@ -57,6 +58,7 @@ public class Player : NetworkBehaviour
         _invulnerableVXF.SetActive(false);
 
         _spawnPositions = new List<Transform>();
+        _canMove = false;
     }
 
 
@@ -75,7 +77,10 @@ public class Player : NetworkBehaviour
         _health.OnValueChanged += HealthOnValueChanged;
         CanTakeDamage.OnValueChanged += CanTakeDamageOnValueChanged;
 
-        FindObjectOfType<MatchManager>().PlayerPrefabInstantiated();
+        MatchManager matchManager = FindObjectOfType<MatchManager>();
+        matchManager.PlayerPrefabInstantiated();
+        matchManager.gameStarted += EnableMovement;
+        matchManager.GameEnded += DisableMovement;
 
         var spawnPositions = GameObject.FindGameObjectsWithTag("SpawnPosition");
         foreach (var spawn in spawnPositions)
@@ -84,7 +89,7 @@ public class Player : NetworkBehaviour
 
     private void Update()
     {
-        if (_networkObject.IsLocalPlayer)
+        if (_networkObject.IsLocalPlayer && _canMove)
         {
             RotateToMouse();
 
@@ -97,7 +102,7 @@ public class Player : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        if (_networkObject.IsLocalPlayer)
+        if (_networkObject.IsLocalPlayer && _canMove)
         {
             UpdateMovementVelocity();
             UpdatePosition();
@@ -259,4 +264,7 @@ public class Player : NetworkBehaviour
     {
         PlayerDied?.Invoke(team, deathAmount);
     }
+
+    private void EnableMovement() => _canMove = true;
+    private void DisableMovement(Team team) => _canMove = false;
 }

@@ -9,11 +9,14 @@ public class MatchManager : NetworkBehaviour
 {
     private int connectedPlayers;
 
+    public delegate void GameStarting();
     public delegate void GameStarted();
-    public event GameStarted gameStarted;
-    public event Action<Team> GameEnded;
+    
+    public event GameStarting   gameStarting;
+    public event GameStarted    gameStarted;
+    public event Action<Team>   GameEnded;
 
-    public GameState CurrentGameSate => _currentGameState;
+    //public static GameState CurrentGameSate = GameState.WaitingForPlayers;
 
     [SerializeField] private int _blueTeamKills = 0;
     [SerializeField] private int _greenTeamKills = 0;
@@ -24,23 +27,28 @@ public class MatchManager : NetworkBehaviour
 
     private void Awake()
     {
-        _currentGameState = GameState.Starting;
-        gameStarted += StartGame;
+        _currentGameState = GameState.WaitingForPlayers;
+        gameStarting += StartGame;
     }
 
     public void PlayerPrefabInstantiated()
     {
         if (!IsServer) return;
-        if (_currentGameState != GameState.Starting) return;
+        if (_currentGameState != GameState.WaitingForPlayers) return;
 
         Debug.Log("Player prefab was instantiated");
         connectedPlayers++;
 
         if (connectedPlayers >= 2)
         {
-            OnGameStarted();
-            StarGameClientRpc();
+            OnGameStarting();
+            StartingGameClientRpc();
         }
+    }
+
+    private void OnGameStarting()
+    {
+        gameStarting?.Invoke();
     }
 
     private void OnGameStarted()
@@ -55,8 +63,29 @@ public class MatchManager : NetworkBehaviour
 
     private void StartGame()
     {
-        _currentGameState = GameState.InProgress;
+        StartCoroutine(StartGameCR());
+    }
+
+    private IEnumerator StartGameCR()
+    {
+        int timer = 3;
+        _currentGameState = GameState.Starting;
         SubscribeToPlayers();
+
+        Debug.Log($"Game starting in {timer}");
+        yield return new WaitForSeconds(1);
+
+        timer--;
+        Debug.Log($"Game starting in {timer}");
+        yield return new WaitForSeconds(1);
+
+        timer--;
+        Debug.Log($"Game starting in {timer}");
+        yield return new WaitForSeconds(1);
+
+        Debug.Log("Game started!");
+        OnGameStarted();
+        StartGameClientRpc();
     }
 
     private void SubscribeToPlayers()
@@ -81,13 +110,26 @@ public class MatchManager : NetworkBehaviour
         if (kills >= _requiredKillsToWin)
         {
             Debug.Log($"Game ended. Winner is {team}");
+            _currentGameState = GameState.Finished;
             OnGameEnded(team);
             EndGameClientRpc(team);
         }
     }
 
+    // private void UpdateCurrentGameState(GameState newGameState)
+    // {
+    //     CurrentGameSate = newGameState;
+    //     UpdateCurrentGameStateClientRpc(newGameState);
+    // }
+
     [ClientRpc]
-    private void StarGameClientRpc()
+    private void StartingGameClientRpc()
+    {
+        OnGameStarting();
+    }
+
+    [ClientRpc]
+    private void StartGameClientRpc()
     {
         OnGameStarted();
     }
@@ -97,4 +139,10 @@ public class MatchManager : NetworkBehaviour
     {
         OnGameEnded(winner);
     }
+
+    //[ClientRpc]
+    // private void UpdateCurrentGameStateClientRpc(GameState newGameState)
+    // {
+    //     CurrentGameSate = newGameState;
+    // }
 }
