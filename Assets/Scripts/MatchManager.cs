@@ -11,11 +11,13 @@ public class MatchManager : NetworkBehaviour
 
     public delegate void GameStarted();
     public event GameStarted gameStarted;
+    public event Action<Team> GameEnded;
 
     public GameState CurrentGameSate => _currentGameState;
 
     [SerializeField] private int _blueTeamKills = 0;
     [SerializeField] private int _greenTeamKills = 0;
+    [SerializeField] private int _requiredKillsToWin = 5;
 
     private GameState _currentGameState;
 
@@ -46,6 +48,11 @@ public class MatchManager : NetworkBehaviour
         gameStarted?.Invoke();
     }
 
+    private void OnGameEnded(Team winner)
+    {
+        GameEnded?.Invoke(winner);
+    }
+
     private void StartGame()
     {
         _currentGameState = GameState.InProgress;
@@ -70,11 +77,24 @@ public class MatchManager : NetworkBehaviour
             _blueTeamKills++;
         else if (team == Team.Green)
             _greenTeamKills++;
+        
+        if (kills >= _requiredKillsToWin)
+        {
+            Debug.Log($"Game ended. Winner is {team}");
+            OnGameEnded(team);
+            EndGameClientRpc(team);
+        }
     }
 
     [ClientRpc]
     private void StarGameClientRpc()
     {
         OnGameStarted();
+    }
+
+    [ClientRpc]
+    private void EndGameClientRpc(Team winner)
+    {
+        OnGameEnded(winner);
     }
 }
