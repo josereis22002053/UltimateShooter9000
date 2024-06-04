@@ -13,14 +13,6 @@ public class CanvasManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI    _gameStartTimer;
     [SerializeField] private TextMeshProUGUI    _result;
 
-    public void UpdateScoreUI(Team team, int newScore)
-    {
-        TextMeshProUGUI scoreToUpdate = team == Team.Blue ? _blueTeamScore : _greenTeamScore;
-
-        Debug.Log($"Updating {team}'s score");
-        scoreToUpdate.text = newScore.ToString();
-    }
-
     private void Start()
     {
         _gameStartScreen.SetActive(false);
@@ -30,6 +22,14 @@ public class CanvasManager : MonoBehaviour
         matchManager.gameStarting += SubscribeToPlayers;
         matchManager.gameStarting += DisplayGameStartScreen;
         matchManager.GameEnded += DisplayResult;
+    }
+
+    private void UpdateScoreUI(Team team, int newScore)
+    {
+        TextMeshProUGUI scoreToUpdate = team == Team.Blue ? _blueTeamScore : _greenTeamScore;
+
+        Debug.Log($"Updating {team}'s score");
+        scoreToUpdate.text = newScore.ToString();
     }
 
     private void SubscribeToPlayers()
