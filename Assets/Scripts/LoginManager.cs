@@ -22,6 +22,11 @@ public class LoginManager : NetworkBehaviour
         _databaseManager = FindObjectOfType<DatabaseManager>();
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.F5)) Login();
+    }
+
     public void SignUp()
     {
         string userNameInput = _userNameField.text;
@@ -32,6 +37,17 @@ public class LoginManager : NetworkBehaviour
         if (ValidUsername(userNameInput) && ValidPassword(passwordInput))
         {
             CreateAccountServerRpc(userNameInput, passwordInput);
+        }
+    }
+
+    public void Login()
+    {
+        string userNameInput = _userNameField.text;
+        string passwordInput = _passwordField.text;
+
+        if (ValidUsername(userNameInput) && ValidPassword(passwordInput))
+        {
+            LoginServerRpc(userNameInput, passwordInput);
         }
     }
 
@@ -66,6 +82,8 @@ public class LoginManager : NetworkBehaviour
             return true;
         }
     }
+
+    
 
     [ServerRpc(RequireOwnership = false)]
     private void ValidUsernameServerRpc(string userName, ServerRpcParams serverRpcParams = default)
@@ -110,9 +128,51 @@ public class LoginManager : NetworkBehaviour
         }
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void LoginServerRpc(string userName, string password, ServerRpcParams serverRpcParams = default)
+    {
+        var clientId = serverRpcParams.Receive.SenderClientId;
+
+        Debug.Log($"Received server rpc from client {clientId}");
+
+        var clientRpcParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = new ulong[] { clientId }
+            }
+        };
+
+        if (_databaseManager.PlayerExists(userName))
+        {
+            if (_databaseManager.CheckPlayerCredentials(userName, password))
+            {
+                // LOGIN ON CLIENT
+                (string name, int elo) playerInfo = _databaseManager.GetPlayerInfo(userName);
+                LoginClientRpc(playerInfo.name, playerInfo.elo, clientRpcParams);
+            }
+            else
+            {
+                DisplayMessageClientRpc(MessageType.PasswordNotCorrect, clientRpcParams);
+            }
+            
+        }
+        else
+        {
+            DisplayMessageClientRpc(MessageType.UsernameNotExists, clientRpcParams);
+        }
+            
+    }
+
     [ClientRpc]
     private void DisplayMessageClientRpc(MessageType error, ClientRpcParams clientRpcParams = default)
     {
         _canvasManager.DisplayError(error);
+    }
+
+    [ClientRpc]
+    private void LoginClientRpc(string userName, int elo, ClientRpcParams clientRpcParams = default)
+    {
+        _canvasManager.DisplayPlayerInfo(userName, elo);
     }
 }

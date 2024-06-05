@@ -16,6 +16,9 @@ public class DatabaseManager : MonoBehaviour
     [SerializeField] private string playerToAdd = "PlayerName";
     [SerializeField] private int newElo = 500;
 
+
+    private bool isServer;
+
     private void Start()
     {
         string path = Directory.GetCurrentDirectory();
@@ -35,6 +38,7 @@ public class DatabaseManager : MonoBehaviour
         {
             if (args[i] == "--server")
             {
+                isServer = true;
                 // --server found, this should be a server application
                 if (File.Exists(dbPath))
                     Debug.Log("Database exists!");
@@ -48,6 +52,8 @@ public class DatabaseManager : MonoBehaviour
 
     private void Update()
     {
+        if (!isServer) return;
+        
         if (Input.GetKeyDown(KeyCode.KeypadPlus))
         {
             AddPlayer(playerToAdd, "123", 100);
@@ -119,6 +125,23 @@ public class DatabaseManager : MonoBehaviour
         return playerExists;
     }
 
+    public bool CheckPlayerCredentials(string name, string password)
+    {
+        using (var connection = new SqliteConnection(databaseName))
+        {
+            connection.Open();
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT COUNT(*) FROM Players WHERE Name = @name AND Password = @password";
+                command.Parameters.AddWithValue("@name", name);
+                command.Parameters.AddWithValue("@password", password);
+
+                long result = (long)command.ExecuteScalar();
+                return result > 0;
+            }
+        }
+    }
+
     public void AddPlayer(string name, string password, int elo)
     {
         using (var connection = new SqliteConnection(databaseName))
@@ -158,6 +181,34 @@ public class DatabaseManager : MonoBehaviour
                 }
             }
             connection.Close();
+        }
+    }
+
+    public (string name, int elo) GetPlayerInfo(string name)
+    {
+        using (var connection = new SqliteConnection(databaseName))
+        {
+            connection.Open();
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT Name, Elo FROM Players WHERE Name = @name";
+                command.Parameters.AddWithValue("@name", name);
+
+                using (var reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        string playerName = reader.GetString(0);
+                        int playerElo = reader.GetInt32(1);
+                        return (playerName, playerElo);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Player not found.");
+                        return("", 0);
+                    }
+                }
+            }
         }
     }
 }

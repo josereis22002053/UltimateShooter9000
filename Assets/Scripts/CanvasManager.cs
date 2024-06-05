@@ -13,9 +13,11 @@ public class CanvasManager : MonoBehaviour
     [SerializeField] private GameObject         _gameStartScreen;
     [SerializeField] private GameObject         _endScreen;
     [SerializeField] private GameObject         _errorDisplay;
+    [SerializeField] private GameObject         _loggedInScreen;
     [SerializeField] private TextMeshProUGUI    _gameStartTimer;
     [SerializeField] private TextMeshProUGUI    _result;
     [SerializeField] private TextMeshProUGUI    _error;
+    [SerializeField] private TextMeshProUGUI    _playerInfo;
 
     [SerializeField] private bool _inGameCanvas;
 
@@ -112,11 +114,17 @@ public class CanvasManager : MonoBehaviour
             case MessageType.UsernameAlreadyExists:
                 _error.text = "Username already exists.";
                 break;
+            case MessageType.UsernameNotExists:
+                _error.text = "Username doesn't exist.";
+                break;
             case MessageType.PasswordInvalidSize:
                 _error.text = "Password must be between 5 and 20 characters long.";
                 break;
             case MessageType.PasswordContainsWhitespace:
                 _error.text = "Password can't contain white spaces.";
+                break;
+            case MessageType.PasswordNotCorrect:
+                _error.text = "Incorrect password.";
                 break;
             case MessageType.CreateAccountSuccessful:
                 _error.text = "Account created. Please login.";
@@ -127,5 +135,12 @@ public class CanvasManager : MonoBehaviour
         }
 
         _errorDisplay.SetActive(true);
+    }
+
+    public void DisplayPlayerInfo(string userName, int elo)
+    {
+        string aux = $"Player info\n  Username: {userName}\n  Rating: {elo}";
+        _playerInfo.text = aux;
+        _loggedInScreen.SetActive(true);
     }
 }
