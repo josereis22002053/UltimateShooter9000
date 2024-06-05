@@ -2582,8 +2582,11 @@ MonoBehaviour:
   _greenTeamScore: {fileID: 577787042}
   _gameStartScreen: {fileID: 322422350}
   _endScreen: {fileID: 2056863773}
+  _errorDisplay: {fileID: 0}
   _gameStartTimer: {fileID: 1130567057}
   _result: {fileID: 2034798120}
+  _error: {fileID: 0}
+  _inGameCanvas: 1
 --- !u!114 &1900764694
 MonoBehaviour:
   m_ObjectHideFlags: 0

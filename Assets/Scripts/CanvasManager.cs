@@ -118,8 +118,12 @@ public class CanvasManager : MonoBehaviour
             case MessageType.PasswordContainsWhitespace:
                 _error.text = "Password can't contain white spaces.";
                 break;
+            case MessageType.CreateAccountSuccessful:
+                _error.text = "Account created. Please login.";
+                break;
             default:
-                throw new System.Exception("Error doesn't exist | " + error.ToString());
+                _error.text = "Unknown error";
+                break;
         }
 
         _errorDisplay.SetActive(true);

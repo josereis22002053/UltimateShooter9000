@@ -21,13 +21,27 @@ public class DatabaseManager : MonoBehaviour
         string path = Directory.GetCurrentDirectory();
         string dbPath = Path.Combine(path, dbSimpleName);
 
-        if (NetworkManager.Singleton.IsServer)
-        {
-            if (File.Exists(dbPath))
-            Debug.Log("Database exists!");
-            else
-                CreateDB();
-        }
+        // if (NetworkManager.Singleton.IsServer)
+        // {
+        //     if (File.Exists(dbPath))
+        //         Debug.Log("Database exists!");
+        //     else
+        //         CreateDB();
+        // }
+
+
+        string[] args = System.Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i] == "--server")
+            {
+                // --server found, this should be a server application
+                if (File.Exists(dbPath))
+                    Debug.Log("Database exists!");
+                else
+                    CreateDB();
+            }
+        }
         
         //CreateDB();
     }

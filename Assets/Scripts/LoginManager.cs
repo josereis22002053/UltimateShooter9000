@@ -18,8 +18,8 @@ public class LoginManager : NetworkBehaviour
     {
         _canvasManager = FindObjectOfType<CanvasManager>();
 
-        if (IsServer)
-            _databaseManager = FindObjectOfType<DatabaseManager>();
+        //if (IsServer)
+        _databaseManager = FindObjectOfType<DatabaseManager>();
     }
 
     public void SignUp()
@@ -67,10 +67,12 @@ public class LoginManager : NetworkBehaviour
         }
     }
 
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = false)]
     private void ValidUsernameServerRpc(string userName, ServerRpcParams serverRpcParams = default)
     {
         var clientId = serverRpcParams.Receive.SenderClientId;
+
+        Debug.Log($"Received server rpc from client {clientId}");
 
         var clientRpcParams = new ClientRpcParams
         {
@@ -84,7 +86,7 @@ public class LoginManager : NetworkBehaviour
             DisplayMessageClientRpc(MessageType.UsernameAlreadyExists, clientRpcParams);
     }
 
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = false)]
     private void CreateAccountServerRpc(string userName, string password, ServerRpcParams serverRpcParams = default)
     {
         var clientId = serverRpcParams.Receive.SenderClientId;
