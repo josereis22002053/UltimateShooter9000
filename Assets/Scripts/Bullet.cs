@@ -28,6 +28,7 @@ public class Bullet : NetworkBehaviour
 
     private void Start()
     {
+        _prevPos = Origin;
         // if (ShotTime > 0)
         //     _prevPos = Origin;
         // else
@@ -40,12 +41,13 @@ public class Bullet : NetworkBehaviour
         if (NetworkManager.Singleton.IsServer)
         {
             var hitCheckDir = transform.position - _prevPos;
-            var hits = Physics.RaycastAll(_prevPos, hitCheckDir, hitCheckDir.magnitude, _hitDetectionLayer);
+            var hits = Physics.RaycastAll(_prevPos, hitCheckDir.normalized, hitCheckDir.magnitude, _hitDetectionLayer);
 
             if (hits.Length > 0)
             {
                 foreach (var hit in hits)
                 {
+                    Debug.Log(hit.transform.name);
                     if (hit.transform.TryGetComponent<Player>(out Player player))
                     {
                         if (player.PlayerId != PlayerId)
