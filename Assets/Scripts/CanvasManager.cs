@@ -13,14 +13,21 @@ public class CanvasManager : MonoBehaviour
     [SerializeField] private GameObject         _gameStartScreen;
     [SerializeField] private GameObject         _endScreen;
     [SerializeField] private GameObject         _errorDisplay;
+    [SerializeField] private GameObject         _settingUpScreen;
     [SerializeField] private GameObject         _loginScreen;
     [SerializeField] private GameObject         _loggedInScreen;
+    [SerializeField] private GameObject         _serverScreen;
     [SerializeField] private TextMeshProUGUI    _gameStartTimer;
     [SerializeField] private TextMeshProUGUI    _result;
     [SerializeField] private TextMeshProUGUI    _error;
     [SerializeField] private TextMeshProUGUI    _playerInfo;
 
     [SerializeField] private bool _inGameCanvas;
+
+    private void Awake()
+    {
+        if (_settingUpScreen) _settingUpScreen.SetActive(true);
+    }
 
     private void Start()
     {
@@ -136,6 +143,13 @@ public class CanvasManager : MonoBehaviour
         }
 
         _errorDisplay.SetActive(true);
+    }
+
+    public void DisplayLoginScreen(bool status)
+    {
+        _settingUpScreen.SetActive(false);
+        _loginScreen.SetActive(status);
+        _serverScreen.SetActive(!status);
     }
 
     public void DisplayLoggedInScreen(string userName, int elo)

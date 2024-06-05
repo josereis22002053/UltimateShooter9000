@@ -16,6 +16,7 @@ using System.Diagnostics;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Build.Reporting;
+using System.Runtime.CompilerServices;
 #endif
 
 
@@ -29,6 +30,9 @@ public class NetworkSetup : MonoBehaviour
 
     private bool isServer = false;
     private int  _playerPrefabIndex;
+    
+    public delegate void NetworkSetupDone();
+    public event NetworkSetupDone networkSetupDone;
 
     private IEnumerator Start()
     {
@@ -51,6 +55,8 @@ public class NetworkSetup : MonoBehaviour
             yield return StartAsServerCR();
         else
             yield return StartAsClientCR();
+
+        OnNetworkSetupDone();
     }
 
     private IEnumerator StartAsServerCR()
@@ -63,8 +69,8 @@ public class NetworkSetup : MonoBehaviour
         // Wait a frame for setups to be done
         yield return null;
 
-        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+        //NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
+        //NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
 
         if (networkManager.StartServer())
         {
@@ -76,6 +82,11 @@ public class NetworkSetup : MonoBehaviour
         }
 
         SetWindowTitle("UltimateShooter9000 - Server");
+    }
+
+    private void OnNetworkSetupDone()
+    {
+        networkSetupDone?.Invoke();
     }
 
     private void OnClientConnect(ulong clientId)

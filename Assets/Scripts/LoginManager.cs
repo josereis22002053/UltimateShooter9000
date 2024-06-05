@@ -13,6 +13,7 @@ public class LoginManager : NetworkBehaviour
 
     private CanvasManager _canvasManager;
     private DatabaseManager _databaseManager;
+    private Matchmaking _matchmakingManager;
 
     private void Start()
     {
@@ -20,6 +21,7 @@ public class LoginManager : NetworkBehaviour
 
         //if (IsServer)
         _databaseManager = FindObjectOfType<DatabaseManager>();
+        _matchmakingManager = FindObjectOfType<Matchmaking>();
     }
 
     private void Update()
@@ -140,6 +142,9 @@ public class LoginManager : NetworkBehaviour
                 // LOGIN ON CLIENT
                 (string name, int elo) playerInfo = _databaseManager.GetPlayerInfo(userName);
                 LoginClientRpc(playerInfo.name, playerInfo.elo, clientRpcParams);
+
+                // Add to connected clients
+                _matchmakingManager.AddClientToConnectedClients(userName, clientId);
             }
             else
             {
