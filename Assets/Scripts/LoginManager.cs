@@ -34,10 +34,7 @@ public class LoginManager : NetworkBehaviour
 
         Debug.Log($"Username = {userNameInput} | Password = {passwordInput}");
 
-        if (ValidUsername(userNameInput) && ValidPassword(passwordInput))
-        {
-            CreateAccountServerRpc(userNameInput, passwordInput);
-        }
+        CreateAccountServerRpc(userNameInput, passwordInput);
     }
 
     public void Login()
@@ -45,53 +42,11 @@ public class LoginManager : NetworkBehaviour
         string userNameInput = _userNameField.text;
         string passwordInput = _passwordField.text;
 
-        if (ValidUsername(userNameInput) && ValidPassword(passwordInput))
-        {
-            LoginServerRpc(userNameInput, passwordInput);
-        }
+        LoginServerRpc(userNameInput, passwordInput);
     }
 
-    private bool ValidUsername(string username)
+    private bool ValidUsername(string username, ulong clientId)
     {
-        if (username.Length < 3 || username.Length > 20)
-        {
-            _canvasManager.DisplayError(MessageType.UsernameInvalidSize);
-            return false;
-        }
-        else
-        {
-            ValidUsernameServerRpc(username);
-            return true;
-        }
-    }
-
-    private bool ValidPassword(string password)
-    {
-        if (password.Length < 5 || password.Length > 20)
-        {
-            _canvasManager.DisplayError(MessageType.PasswordInvalidSize);
-            return false;
-        }
-        else if (password.Any(char.IsWhiteSpace))
-        {
-            _canvasManager.DisplayError(MessageType.PasswordContainsWhitespace);
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-    }
-
-    
-
-    [ServerRpc(RequireOwnership = false)]
-    private void ValidUsernameServerRpc(string userName, ServerRpcParams serverRpcParams = default)
-    {
-        var clientId = serverRpcParams.Receive.SenderClientId;
-
-        Debug.Log($"Received server rpc from client {clientId}");
-
         var clientRpcParams = new ClientRpcParams
         {
             Send = new ClientRpcSendParams
@@ -100,9 +55,48 @@ public class LoginManager : NetworkBehaviour
             }
         };
 
-        if (_databaseManager.PlayerExists(userName))
+        if (username.Length < 3 || username.Length > 20)
+        {
+            DisplayMessageClientRpc(MessageType.UsernameInvalidSize, clientRpcParams);
+            return false;
+        }
+        else if (_databaseManager.PlayerExists(username))
+        {
             DisplayMessageClientRpc(MessageType.UsernameAlreadyExists, clientRpcParams);
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
+
+    private bool ValidPassword(string password, ulong clientId)
+    {
+        var clientRpcParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = new ulong[] { clientId }
+            }
+        };
+
+        if (password.Length < 5 || password.Length > 20)
+        {
+            DisplayMessageClientRpc(MessageType.PasswordInvalidSize, clientRpcParams);
+            return false;
+        }
+        else if (password.Any(char.IsWhiteSpace))
+        {
+            DisplayMessageClientRpc(MessageType.PasswordContainsWhitespace, clientRpcParams);
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
 
     [ServerRpc(RequireOwnership = false)]
     private void CreateAccountServerRpc(string userName, string password, ServerRpcParams serverRpcParams = default)
@@ -117,14 +111,10 @@ public class LoginManager : NetworkBehaviour
             }
         };
 
-        if (!_databaseManager.PlayerExists(userName))
+        if (ValidUsername(userName, clientId) && ValidPassword(password, clientId))
         {
-            _databaseManager.AddPlayer(userName, password, 100);
+            _databaseManager.AddPlayer(userName, password, 500);
             DisplayMessageClientRpc(MessageType.CreateAccountSuccessful, clientRpcParams);
-        }
-        else
-        {
-            DisplayMessageClientRpc(MessageType.UsernameAlreadyExists, clientRpcParams);
         }
     }
 
@@ -173,6 +163,6 @@ public class LoginManager : NetworkBehaviour
     [ClientRpc]
     private void LoginClientRpc(string userName, int elo, ClientRpcParams clientRpcParams = default)
     {
-        _canvasManager.DisplayPlayerInfo(userName, elo);
+        _canvasManager.DisplayLoggedInScreen(userName, elo);
     }
 }
