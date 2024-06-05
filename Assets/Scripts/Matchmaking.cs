@@ -7,8 +7,6 @@ using TMPro;
 
 public class Matchmaking : MonoBehaviour
 {
-    [SerializeField] private TMP_InputField _input;
-
     private void Awake()
     {
         

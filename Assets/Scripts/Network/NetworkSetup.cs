@@ -63,8 +63,8 @@ public class NetworkSetup : MonoBehaviour
         // Wait a frame for setups to be done
         yield return null;
 
-        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+        //NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
+        //NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
 
         if (networkManager.StartServer())
         {

@@ -3,6 +3,8 @@ using TMPro;
 using Unity.Netcode;
 using System.Collections;
 using Unity.VisualScripting;
+using UnityEngine.Video;
+using System.Text.RegularExpressions;
 
 public class CanvasManager : MonoBehaviour
 {
@@ -10,18 +12,25 @@ public class CanvasManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI    _greenTeamScore;
     [SerializeField] private GameObject         _gameStartScreen;
     [SerializeField] private GameObject         _endScreen;
+    [SerializeField] private GameObject         _errorDisplay;
     [SerializeField] private TextMeshProUGUI    _gameStartTimer;
     [SerializeField] private TextMeshProUGUI    _result;
+    [SerializeField] private TextMeshProUGUI    _error;
+
+    [SerializeField] private bool _inGameCanvas;
 
     private void Start()
     {
-        _gameStartScreen.SetActive(false);
-        _endScreen.SetActive(false);
+        if (_inGameCanvas)
+        {
+            _gameStartScreen.SetActive(false);
+            _endScreen.SetActive(false);
 
-        MatchManager matchManager = FindObjectOfType<MatchManager>();
-        matchManager.gameStarting += SubscribeToPlayers;
-        matchManager.gameStarting += DisplayGameStartScreen;
-        matchManager.GameEnded += DisplayResult;
+            MatchManager matchManager = FindObjectOfType<MatchManager>();
+            matchManager.gameStarting += SubscribeToPlayers;
+            matchManager.gameStarting += DisplayGameStartScreen;
+            matchManager.GameEnded += DisplayResult;
+        }
     }
 
     private void UpdateScoreUI(Team team, int newScore)
@@ -91,5 +100,28 @@ public class CanvasManager : MonoBehaviour
         yield return new WaitForSeconds(1);
 
         _gameStartScreen.SetActive(false);
+    }
+
+    public void DisplayError(MessageType error)
+    {
+        switch (error)
+        {
+            case MessageType.UsernameInvalidSize:
+                _error.text = "Username must be between 3 and 20 characters long.";
+                break;
+            case MessageType.UsernameAlreadyExists:
+                _error.text = "Username already exists.";
+                break;
+            case MessageType.PasswordInvalidSize:
+                _error.text = "Password must be between 5 and 20 characters long.";
+                break;
+            case MessageType.PasswordContainsWhitespace:
+                _error.text = "Password can't contain white spaces.";
+                break;
+            default:
+                throw new System.Exception("Error doesn't exist | " + error.ToString());
+        }
+
+        _errorDisplay.SetActive(true);
     }
 }
