@@ -663,6 +663,8 @@ MonoBehaviour:
   _logsPanel: {fileID: 1274584532}
   _clientInfoPrefab: {fileID: 7786263978363990662, guid: 93c6ece2f1922f14380f84f0df26d0dc,
     type: 3}
+  _connectionInfoPrefab: {fileID: 885667236377103227, guid: c52ef9faa30fdfe4c97ceb760cd9e0a3,
+    type: 3}
   _logEntryPrefab: {fileID: 6245381132758013311, guid: aa32841566411b14f9b7db1760a20286,
     type: 3}
   newEntryTest: NewEntry

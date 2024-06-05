@@ -7,6 +7,7 @@ using UnityEngine;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Debug = UnityEngine.Debug;
+using UnityEngine.SceneManagement;
 
 #if UNITY_STANDALONE_WIN
 using System.Runtime.InteropServices;
@@ -29,7 +30,9 @@ public class NetworkSetup : MonoBehaviour
     [SerializeField] private Transform[]    _player2SpawnPoints;
 
     private bool isServer = false;
+    private bool _isGameServer;
     private int  _playerPrefabIndex;
+    private ushort _connectionPort;
     
     public delegate void NetworkSetupDone();
     public event NetworkSetupDone networkSetupDone;
@@ -44,7 +47,20 @@ public class NetworkSetup : MonoBehaviour
             {
                 // --server found, this should be a server application
                 isServer = true;
+                break;
             }
+            else if (args[i] == "--gameServer" && SceneManager.GetActiveScene().buildIndex == 0)
+            {
+                SceneManager.LoadScene(1);
+                yield break;
+            }
+            else if (args[i] == "--gameServer" && SceneManager.GetActiveScene().buildIndex == 1)
+            {
+                _isGameServer = true;
+                _connectionPort = (ushort)int.Parse(args[i + 1]);
+                isServer = true;
+                break;
+            }
         }
 
 #if UNITY_EDITOR
@@ -64,13 +80,19 @@ public class NetworkSetup : MonoBehaviour
         var networkManager = GetComponent<NetworkManager>();
         networkManager.enabled = true;
         var transport = GetComponent<UnityTransport>();
+
+        if (_isGameServer) transport.ConnectionData.Port = _connectionPort;
         transport.enabled = true;
 
         // Wait a frame for setups to be done
         yield return null;
 
-        //NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
-        //NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+        if (_isGameServer)
+        {
+            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnect;
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+        }
+        
 
         if (networkManager.StartServer())
         {
@@ -136,6 +158,9 @@ public class NetworkSetup : MonoBehaviour
         var networkManager = GetComponent<NetworkManager>();
         networkManager.enabled = true;
         var transport = GetComponent<UnityTransport>();
+
+        var connectionInfo = FindObjectOfType<ConnectionInfo>();
+        if (connectionInfo) transport.ConnectionData.Port = connectionInfo.ConnectionPort;
         transport.enabled = true;
 
         // Wait a frame for setups to be done

@@ -8,12 +8,16 @@ using UnityEngine.UIElements;
 using UnityEditor.Rendering;
 using System.Linq;
 using Unity.Netcode;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
+using UnityEngine.SceneManagement;
 
 public class Matchmaking : NetworkBehaviour
 {
     [SerializeField] private Transform              _connectedClientsPanel;
     [SerializeField] private Transform              _logsPanel;
     [SerializeField] private ConnectedClientInfo    _clientInfoPrefab;
+    [SerializeField] private ConnectionInfo         _connectionInfoPrefab;
     [SerializeField] private TextMeshProUGUI        _logEntryPrefab;
 
     [SerializeField] private string newEntryTest = "NewEntry";
@@ -115,7 +119,10 @@ public class Matchmaking : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void AddPlayerToQueueServerRpc(ServerRpcParams serverRpcParams = default)
     {
+        
         var clientId = serverRpcParams.Receive.SenderClientId;
+
+        if (_playersInQueue.Any(p => p.ClientID == clientId)) return;
 
         Debug.Log($"Received server rpc from client {clientId}");
 
@@ -136,6 +143,7 @@ public class Matchmaking : NetworkBehaviour
             };
 
             MatchFoundClientRpc(clientRpcParams);
+            Run("UltimateShooter9000.exe", "--gameServer 7778");
         }
         else
         {
@@ -148,11 +156,31 @@ public class Matchmaking : NetworkBehaviour
     private void MatchFoundClientRpc(ClientRpcParams clientRpcParams = default)
     {
         Debug.Log("Match found!");
+
+        ConnectionInfo connectionInfo = Instantiate(_connectionInfoPrefab);
+        connectionInfo.ConnectionPort = 7778;
+
+        DontDestroyOnLoad(connectionInfo.gameObject);
+
+        
+        NetworkManager.Singleton.Shutdown();
+        NetworkManager networkManager = FindObjectOfType<NetworkManager>();
+        Destroy(networkManager.gameObject);
+
+        SceneManager.LoadScene(1);
+    }
+
+    private static void Run(string path, string args)
+    {
+        // Start a new process
+        Process process = new Process();
+        // Configure the process using the StartInfo properties
+        process.StartInfo.FileName = path;
+        process.StartInfo.Arguments = args;
+        process.StartInfo.WindowStyle = ProcessWindowStyle.Normal; // Choose the window style: Hidden, Minimized, Maximized, Normal
+        process.StartInfo.RedirectStandardOutput = false; // Set to true to redirect the output (so you can read it in Unity)
+        process.StartInfo.UseShellExecute = true; // Set to false if you want to redirect the output
+        // Run the process
+        process.Start();
     }
 }
-
-// [System.Serializable]
-// public class LogEntry
-// {
-//     public TextMeshProUGUI Message;
-// }
