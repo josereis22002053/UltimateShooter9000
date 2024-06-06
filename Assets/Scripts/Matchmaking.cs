@@ -149,6 +149,28 @@ public class Matchmaking : NetworkBehaviour
         AddPlayerToQueueServerRpc();
     }
 
+    private void RemovePlayerFromQueue(string userName)
+    {
+        // var entries = _clientsInQueuePanel.transform.GetComponentsInChildren<TextMeshProUGUI>();
+        // foreach (var entry in entries)
+        // {
+        //     if (entry.text == userName)
+        //     {
+        //         Destroy(entry.gameObject);
+        //         break;
+        //     }
+        // }
+
+        var inQueueEntries = _clientsInQueuePanel.GetComponentsInChildren<TextMeshProUGUI>();
+        var playerEntry = inQueueEntries.FirstOrDefault(e => e.text.Contains(userName));
+        Destroy(playerEntry.gameObject);
+
+        var playerToRemove = _playersInQueue.FirstOrDefault(p => p.UserName == userName);
+        _playersInQueue.Remove(playerToRemove);
+
+        AddLogEntry(LogEntryType.ClientLeftQueue, userName);
+    }
+
     [ServerRpc(RequireOwnership = false)]
     private void AddPlayerToQueueServerRpc(ServerRpcParams serverRpcParams = default)
     {
@@ -176,19 +198,20 @@ public class Matchmaking : NetworkBehaviour
             };
 
 
-            var entries = _clientsInQueuePanel.transform.GetComponentsInChildren<TextMeshProUGUI>();
-            foreach (var entry in entries)
-            {
-                if (entry.text == _playersInQueue[0].UserName)
-                {
-                    Destroy(entry.gameObject);
-                    break;
-                }
-            }
+            // var entries = _clientsInQueuePanel.transform.GetComponentsInChildren<TextMeshProUGUI>();
+            // foreach (var entry in entries)
+            // {
+            //     if (entry.text == _playersInQueue[0].UserName)
+            //     {
+            //         Destroy(entry.gameObject);
+            //         break;
+            //     }
+            // }
 
 
-            AddLogEntry(LogEntryType.ClientLeftQueue, _playersInQueue[0].UserName);
-            _playersInQueue.RemoveAt(0);
+            // AddLogEntry(LogEntryType.ClientLeftQueue, _playersInQueue[0].UserName);
+            // _playersInQueue.RemoveAt(0);
+            RemovePlayerFromQueue(_playersInQueue[0].UserName);
 
             MatchFoundClientRpc(clientRpcParams);
 
