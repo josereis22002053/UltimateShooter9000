@@ -11,9 +11,13 @@ using Unity.Netcode;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
 using UnityEngine.SceneManagement;
+using System.Net.Sockets;
+using System.Net;
+using System.Text;
 
 public class Matchmaking : NetworkBehaviour
 {
+    [SerializeField] private int                    _matchServerCommunicationPort = 1234;
     [SerializeField] private Transform              _connectedClientsPanel;
     [SerializeField] private Transform              _clientsInQueuePanel;
     [SerializeField] private Transform              _logsPanel;
@@ -28,10 +32,17 @@ public class Matchmaking : NetworkBehaviour
     CanvasManager _canvasManager;
     private List<ConnectedClientInfo> _playersInQueue;
 
+    
+    [SerializeField] private List<Socket> _connectedMatchServers = new List<Socket>();
+
+    private Socket _listenerSocket;
+
     private void Awake()
     {
         //_connectedClients = new List<TextMeshProUGUI>();
         _playersInQueue = new List<ConnectedClientInfo>();
+
+        //_connectedMatchServers= new List<Socket>();
     }
 
     private void Start()
@@ -43,9 +54,38 @@ public class Matchmaking : NetworkBehaviour
 
     private void Update()
     {
-        //if (Input.GetKeyDown(KeyCode.KeypadDivide)) AddClientToConnectedClients(newEntryTest);
+        if (_listenerSocket != null)
+        {
+            // Wait for a connection to be made - a new socket is created when that happens
+            try
+            {
+                Socket newClientSocket = _listenerSocket.Accept();
 
-        //if (Input.GetKeyDown(KeyCode.Keypad0)) RemoveClientFromConnectedClients(newEntryTest);
+                if (newClientSocket != null)
+                {
+                    Console.WriteLine("New match server connected!");
+
+                    newClientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                    _connectedMatchServers.Add(newClientSocket);
+                }
+            }
+            catch (SocketException e)
+            {
+                if (e.SocketErrorCode == SocketError.WouldBlock)
+                {
+                }
+                else
+                {
+                    Debug.Log($"SocketException: {e}");
+                }
+            }
+        }
+
+        if (_connectedMatchServers.Count > 0)
+        {
+            ReceiveMatchServerMessages();
+        }
+
         if (_playersInQueue.Count > 0)
         {
             foreach(var player in _playersInQueue)
@@ -83,8 +123,123 @@ public class Matchmaking : NetworkBehaviour
         //_canvasManager.DisplayLoginScreen(!NetworkManager.Singleton.IsServer);
 
         if (NetworkManager.Singleton.IsServer)
+        {
             NetworkManager.Singleton.OnClientDisconnectCallback+= RemoveClientFromConnectedClients;
+            OpenConnection();
+        }
+    }
 
+    private void OpenConnection()
+    {
+        try
+        {
+            // Create listener socket
+            // Prepare an endpoint for the socket, at port 80
+            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _matchServerCommunicationPort);
+
+            // Create a Socket that will use TCP protocol
+            _listenerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+            // A Socket must be associated with an endpoint using the Bind method
+            _listenerSocket.Bind(localEndPoint);
+
+            // Specify how many requests a Socket can listen before it gives Server busy response.
+            // We will listen 10 request at a time
+            _listenerSocket.Listen(10);
+
+            _listenerSocket.Blocking = false;
+
+            Debug.Log("Ready to communicate with match servers");
+        }
+        catch (SocketException e)
+        {
+            Debug.Log($"SocketException: {e}");
+        }
+    }
+
+    private void ReceiveMatchServerMessages()
+    {
+        foreach (Socket socket in _connectedMatchServers)
+        {
+            if (socket.Connected)
+            {
+                try
+                {
+                    // Prepare space for request
+                    string incomingMessage = "";
+                    byte[] bytes = new byte[1024];
+                    while (true)
+                    {
+                        // Read a max. of 1024 bytes
+                        int bytesRec = socket.Receive(bytes);
+                        // Convert that to a string
+                        incomingMessage += Encoding.UTF32.GetString(bytes, 0, bytesRec);
+                        // If we've read less than 1024 bytes, assume we've already received the
+                        // whole message
+                        if (bytesRec < bytes.Length)
+                        {
+                            // No more data to receive, just exit
+                            break;
+                        }
+                    }
+                    Debug.Log($"Received message: {incomingMessage}");
+                    ProcessMessage(incomingMessage);  
+                }
+                catch (SocketException e)
+                {
+                    if (e.SocketErrorCode == SocketError.WouldBlock)
+                    {
+                    }
+                    else
+                    {
+                        Debug.Log($"SocketException: {e}");
+                    }
+                }
+
+                
+                // else
+                // {
+                //     try
+                //     {
+                //         if (client.Poll(1, SelectMode.SelectRead))
+                //         {
+                //         }
+                //     }
+                //     catch (SocketException e)
+                //     {
+                //         Console.WriteLine(e);
+
+                //         // Close the socket if it's not connected anymore
+                //         client.Close();
+                //         _clientSockets.Remove(client);
+                //     }
+                // }
+            }
+            else
+            {
+                // Close the socket if it's not connected anymore
+                socket.Close();
+                _connectedMatchServers.Remove(socket);
+                Debug.Log("Socket closed");
+            }
+        }
+    }
+
+    private void ProcessMessage(string message)
+    {
+        string[] messageReceived = message.Split();
+
+        if (messageReceived[0] == "READY")
+        {
+            Debug.Log($"MatchServer with port {messageReceived[1]} is READY");
+            // CHECK IF SERVER EXISTS
+            // SEND CLIENTS TO SERVER
+        }
+        else if (messageReceived[0] == "SHUTDOWN")
+        {
+            // REMOVE SERVER FROM OCCUPIED SERVERS
+            // ADD IT BACK TO AVAILABLE SERVERS
+        }
     }
 
     public void AddClientToConnectedClients(string userName, string password, int elo, ulong clientId)

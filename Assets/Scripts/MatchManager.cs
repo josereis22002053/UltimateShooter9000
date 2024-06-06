@@ -7,6 +7,9 @@ using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using System.Linq;
 using UnityEngine.SceneManagement;
+using System.Net.Sockets;
+using System.Net;
+using System.Text;
 
 public class MatchManager : NetworkBehaviour
 {
@@ -30,12 +33,96 @@ public class MatchManager : NetworkBehaviour
     private List<PlayerInfo> _connectedPlayersList;
     private DatabaseManager _databaseManager;
 
+    private Socket _socket;
+
     private void Awake()
     {
         _currentGameState = GameState.WaitingForPlayers;
         gameStarting += StartGame;
         gameStarted += CreatePlayerDictionary;
         GameEnded += UpdatePlayerDatabase;
+    }
+
+    private void Start()
+    {
+        var networkSetup = FindObjectOfType<NetworkSetup>();
+        networkSetup.networkSetupDone += ConnectToMatchMakingServer;
+    }
+
+    private void ConnectToMatchMakingServer()
+    {
+        if (IsServer)
+        {   
+            string[] args = System.Environment.GetCommandLineArgs();
+            int matchMakingPort = 0;
+            int serverPort = 0;
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--gameServer")
+                {
+                    serverPort = int.Parse(args[i + 1]);
+                    matchMakingPort = int.Parse(args[i + 2]);
+                    break;
+                }
+            }
+
+            try
+            {
+                // Convert the server hostname/IP to an IP address 
+                // For maximum compatibility, I'm using IPv4, so I make sure I'm using
+                // a IPv4 interface
+                IPHostEntry ipHost = Dns.GetHostEntry("localhost");
+                IPAddress   ipAddress = null;
+                for (int i = 0; i < ipHost.AddressList.Length; i++)
+                {
+                    if (ipHost.AddressList[i].AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        ipAddress = ipHost.AddressList[i];
+                    }
+                }
+                // Create and connect the socket to the remote endpoint (TCP)
+                IPEndPoint remoteEndPoint = new IPEndPoint(ipAddress, matchMakingPort);
+
+                // Create a Socket that will use TCP protocol
+                _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+                // Connect to endpoint
+                _socket.Connect(remoteEndPoint);
+
+                // // // Specify how many requests a Socket can listen before it gives Server busy response.
+                // // // We will listen 1 request at a time
+                // // _socket.Listen(2);
+
+                // // _socket.Blocking = false;
+
+                Debug.Log("Server is ready to communicate with matchmaking");
+
+                // Convert to bytes
+                byte[] msgToSend = Encoding.UTF32.GetBytes($"READY {serverPort}");
+
+                try
+                {
+                    // Send message to server
+                    _socket.Send(msgToSend);
+                }
+                catch (SocketException e)
+                {
+                    Debug.Log($"SocketException: {e}");
+                }
+            }
+            catch (SocketException e)
+            {
+                Debug.Log($"SocketException: {e}");
+            }
+        }
+    }
+
+    private void OnApplicationQuit()
+    {
+        Debug.Log("Match server quit");
+        _socket.Disconnect(false);
+        _socket.Close();
     }
 
     public void PlayerPrefabInstantiated()

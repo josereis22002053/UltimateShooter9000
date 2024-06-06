@@ -49,12 +49,12 @@ public class NetworkSetup : MonoBehaviour
                 isServer = true;
                 break;
             }
-            else if (args[i] == "--gameServer" && SceneManager.GetActiveScene().buildIndex == 0)
-            {
-                SceneManager.LoadScene(1);
-                yield break;
-            }
-            else if (args[i] == "--gameServer" && SceneManager.GetActiveScene().buildIndex == 1)
+            // else if (args[i] == "--gameServer" && SceneManager.GetActiveScene().buildIndex == 0)
+            // {
+            //     SceneManager.LoadScene(1);
+            //     yield break;
+            // }
+            else if (args[i] == "--gameServer" && SceneManager.GetActiveScene().buildIndex == 2)
             {
                 _isGameServer = true;
                 _connectionPort = (ushort)int.Parse(args[i + 1]);
