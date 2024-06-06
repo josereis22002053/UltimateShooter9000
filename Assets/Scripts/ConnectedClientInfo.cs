@@ -9,4 +9,6 @@ public class ConnectedClientInfo : MonoBehaviour
     public string UserName;
     public string Password;
     public int Elo;
+    public int EloGapMatching;
+    public float TimeSinceLastGapUpdate;
 }

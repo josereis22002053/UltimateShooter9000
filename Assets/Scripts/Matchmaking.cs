@@ -15,6 +15,7 @@ using UnityEngine.SceneManagement;
 public class Matchmaking : NetworkBehaviour
 {
     [SerializeField] private Transform              _connectedClientsPanel;
+    [SerializeField] private Transform              _clientsInQueuePanel;
     [SerializeField] private Transform              _logsPanel;
     [SerializeField] private ConnectedClientInfo    _clientInfoPrefab;
     [SerializeField] private ConnectionInfo         _connectionInfoPrefab;
@@ -45,6 +46,23 @@ public class Matchmaking : NetworkBehaviour
         //if (Input.GetKeyDown(KeyCode.KeypadDivide)) AddClientToConnectedClients(newEntryTest);
 
         //if (Input.GetKeyDown(KeyCode.Keypad0)) RemoveClientFromConnectedClients(newEntryTest);
+        if (_playersInQueue.Count > 0)
+        {
+            foreach(var player in _playersInQueue)
+            {
+                player.TimeSinceLastGapUpdate += Time.deltaTime;
+                if (player.TimeSinceLastGapUpdate >= 5.0f)
+                {
+                    player.EloGapMatching += 50;
+                    player.TimeSinceLastGapUpdate = 0.0f;
+
+                    var inQueueEntries = _clientsInQueuePanel.GetComponentsInChildren<TextMeshProUGUI>();
+
+                    var playerEntry = inQueueEntries.FirstOrDefault(e => e.text.Contains(player.UserName));
+                    playerEntry.text = $"{player.UserName} | {player.Elo} | {player.EloGapMatching}";
+                }
+            }
+        }
     }
 
     private void Initialize()
@@ -56,13 +74,15 @@ public class Matchmaking : NetworkBehaviour
 
     }
 
-    public void AddClientToConnectedClients(string userName, string password, ulong clientId)
+    public void AddClientToConnectedClients(string userName, string password, int elo, ulong clientId)
     {
         //_connectedClients.Add()
 
         ConnectedClientInfo newClientInfo = Instantiate(_clientInfoPrefab);
         newClientInfo.UserName = userName;
         newClientInfo.Password = password;
+        newClientInfo.Elo = elo;
+        newClientInfo.EloGapMatching = 50;
         newClientInfo.ClientID = clientId;
         _connectedClients.Add(newClientInfo);
 
@@ -108,12 +128,22 @@ public class Matchmaking : NetworkBehaviour
             case LogEntryType.ClientDisconnected:
                 newEntry.text = $"{userName1} signed out.";
                 break;
+            case LogEntryType.ClientJoinedQueue:
+                newEntry.text = $"{userName1} joined the queue.";
+                break;
+            case LogEntryType.ClientLeftQueue:
+                newEntry.text = $"{userName1} left the queue.";
+                break;
+            case LogEntryType.MatchCreated:
+                newEntry.text = $"Launched match for {userName1} and {userName2}";
+                break;
             default:
                 newEntry.text = $"Unknown log type. ({logType})";
                 break;
         }
     }
 
+    // Called by "Find match button" on client
     public void AddPlayerToQueue()
     {
         AddPlayerToQueueServerRpc();
@@ -145,6 +175,19 @@ public class Matchmaking : NetworkBehaviour
                 }
             };
 
+
+            var entries = _clientsInQueuePanel.transform.GetComponentsInChildren<TextMeshProUGUI>();
+            foreach (var entry in entries)
+            {
+                if (entry.text == _playersInQueue[0].UserName)
+                {
+                    Destroy(entry.gameObject);
+                    break;
+                }
+            }
+
+
+            AddLogEntry(LogEntryType.ClientLeftQueue, _playersInQueue[0].UserName);
             _playersInQueue.RemoveAt(0);
 
             MatchFoundClientRpc(clientRpcParams);
@@ -152,8 +195,8 @@ public class Matchmaking : NetworkBehaviour
 //#if UNITY_EDITOR
             //string currentPath = 
             //Run("C:\\Users\\Reeiz\\Desktop\\UltimateShooteLogin\\UltimateShooter9000.exe", "--gameServer 7778");
-            //Run("Builds\\UltimateShooter9000.exe", "--gameServer 7778");
-            Run("UltimateShooter9000.exe", "--gameServer 7778");
+            Run("Builds\\UltimateShooter9000.exe", "--gameServer 7778");
+            //Run("UltimateShooter9000.exe", "--gameServer 7778");
 //#endif
 
 // #if UNITY_STANDALONE
@@ -163,7 +206,15 @@ public class Matchmaking : NetworkBehaviour
         else
         {
             var client = _connectedClients.First(c => c.ClientID == clientId);
+            client.TimeSinceLastGapUpdate = 0.0f;
             _playersInQueue.Add(client);
+
+            // Add to Clients in queue panel
+            TextMeshProUGUI newEntry = Instantiate(_logEntryPrefab, _clientsInQueuePanel);
+            newEntry.text = $"{client.UserName} | {client.Elo} | {client.EloGapMatching}";
+
+            // Add new entry to logs
+            AddLogEntry(LogEntryType.ClientJoinedQueue, client.UserName);
         }
     }
 

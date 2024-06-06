@@ -178,7 +178,7 @@ public class LoginManager : NetworkBehaviour
                 LoginClientRpc(playerInfo.name, password, playerInfo.elo, playerInfo.kills, playerInfo.deaths, clientRpcParams);
 
                 // Add to connected clients
-                _matchmakingManager.AddClientToConnectedClients(userName, password, clientId);
+                _matchmakingManager.AddClientToConnectedClients(userName, password, playerInfo.elo, clientId);
             }
             else
             {
