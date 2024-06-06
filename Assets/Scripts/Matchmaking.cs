@@ -322,6 +322,7 @@ public class Matchmaking : NetworkBehaviour
     public void AddPlayerToQueue()
     {
         AddPlayerToQueueServerRpc();
+        _canvasManager.UpdateMatchmakingStatus(MatchmakingStatus.LookingForOpponent);
     }
 
     private void RemovePlayerFromQueue(string userName)
@@ -347,7 +348,6 @@ public class Matchmaking : NetworkBehaviour
         Debug.Log($"Received server rpc from client {clientId}");
 
         
-
         if (_playersInQueue.Count > 0)
         {
     // //         AddLogEntry(LogEntryType.MatchCreated,
@@ -375,15 +375,16 @@ public class Matchmaking : NetworkBehaviour
             bool foundOpponent = false;
 
             var playerJoiningQueue = _connectedClients.FirstOrDefault(c => c.ClientID == clientId);
-            foreach (var player in _playersInQueue)
+            foreach (var opponent in _playersInQueue)
             {
-                if (Mathf.Abs(playerJoiningQueue.Elo - player.Elo) <= player.EloGapMatching)
+                if (Mathf.Abs(playerJoiningQueue.Elo - opponent.Elo) <= opponent.EloGapMatching)
                 {
-                    Debug.Log($@"Matching {playerJoiningQueue.UserName} with {player.UserName}. 
-                              Elo gap is {Mathf.Abs(playerJoiningQueue.Elo - player.Elo)}");
+                    Debug.Log($@"Matching {playerJoiningQueue.UserName} with {opponent.UserName}. 
+                              Elo gap is {Mathf.Abs(playerJoiningQueue.Elo - opponent.Elo)}");
 
-                    RemovePlayerFromQueue(player.UserName);
+                    RemovePlayerFromQueue(opponent.UserName);
                     foundOpponent = true;
+                    MatchFound(playerJoiningQueue.ClientID, opponent.ClientID);
                     break;
                 }
             }
@@ -442,27 +443,45 @@ public class Matchmaking : NetworkBehaviour
             player.FoundMatch = true;
             opponent.FoundMatch = true;
 
+            MatchFound(player.ClientID, opponent.ClientID);
             Debug.Log($@"Matching {player.UserName} with {opponent.UserName}. 
                         Elo gap is {Mathf.Abs(player.Elo - opponent.Elo)}");
         }
     }
 
-    [ClientRpc]
-    private void MatchFoundClientRpc(ClientRpcParams clientRpcParams = default)
+    private void MatchFound(ulong clientId1, ulong clientId2)
     {
-        Debug.Log("Match found!");
+        var clientRpcParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = new ulong[] { clientId1, clientId2 }
+            }
+        };
 
-        ConnectionInfo connectionInfo = Instantiate(_connectionInfoPrefab);
-        connectionInfo.ConnectionPort = 7778;
+        UpdateMatchmakingStatusClientRpc(MatchmakingStatus.WaitingForServer, clientRpcParams);
+    }
 
-        DontDestroyOnLoad(connectionInfo.gameObject);
+    [ClientRpc]
+    private void UpdateMatchmakingStatusClientRpc(MatchmakingStatus status, ClientRpcParams clientRpcParams = default)
+    {
+        Debug.Log("Executing UpdateMatchmakingStatusClientRpc on client");
+        _canvasManager.UpdateMatchmakingStatus(status);
+    }
 
-        
+    [ClientRpc]
+    private void JoinMatchClientRpc(ushort matchServerPort, ClientRpcParams clientRpcParams = default)
+    {
+        ConnectionInfo clientConnectionInfo = Instantiate(_connectionInfoPrefab);
+        clientConnectionInfo.ConnectionPort = matchServerPort;
+
+        DontDestroyOnLoad(clientConnectionInfo.gameObject);
+
         NetworkManager.Singleton.Shutdown();
         NetworkManager networkManager = FindObjectOfType<NetworkManager>();
         Destroy(networkManager.gameObject);
 
-        SceneManager.LoadScene(1);
+        SceneManager.LoadScene(2);
     }
 
     private static void Run(string path, string args)

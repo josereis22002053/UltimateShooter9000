@@ -24,12 +24,14 @@ public class CanvasManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI    _result;
     [SerializeField] private TextMeshProUGUI    _error;
     [SerializeField] private TextMeshProUGUI    _playerInfo;
+    [SerializeField] private TextMeshProUGUI    _matchmakingStatus;
 
     [SerializeField] private bool _inGameCanvas;
 
     private void Awake()
     {
         if (_settingUpScreen) _settingUpScreen.SetActive(true);
+        if (_matchmakingStatus) _matchmakingStatus.text = "";
     }
 
     private void Start()
@@ -179,5 +181,22 @@ public class CanvasManager : MonoBehaviour
     {
         string aux = $"Player info\n  Username: {userName}\n  Rating: {elo}\n  Kills: {kills}\n  Deaths: {deaths}";
         _playerInfo.text = aux;
+    }
+
+    public void UpdateMatchmakingStatus(MatchmakingStatus status)
+    {
+        switch (status)
+        {
+            case MatchmakingStatus.LookingForOpponent:
+                if (_matchmakingStatus.text == "")
+                    _matchmakingStatus.text = "Looking for opponent...";
+                break;
+            case MatchmakingStatus.WaitingForServer:
+                _matchmakingStatus.text = "Opponent found! Waiting for server...";
+                break;
+            default:
+                _matchmakingStatus.text = "Unknown matchmaking status";
+                break;
+        }
     }
 }
