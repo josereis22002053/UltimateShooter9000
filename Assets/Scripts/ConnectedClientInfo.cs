@@ -11,4 +11,5 @@ public class ConnectedClientInfo : MonoBehaviour
     public int Elo;
     public int EloGapMatching;
     public float TimeSinceLastGapUpdate;
+    public bool FoundMatch;
 }

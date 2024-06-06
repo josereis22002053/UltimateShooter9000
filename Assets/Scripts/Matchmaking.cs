@@ -62,6 +62,19 @@ public class Matchmaking : NetworkBehaviour
                     playerEntry.text = $"{player.UserName} | {player.Elo} | {player.EloGapMatching}";
                 }
             }
+
+            if (_playersInQueue.Count >= 2)
+            {
+                foreach(var player in _playersInQueue) CheckForCompatibleOpponent(player);
+
+                if (_playersInQueue.Any(p => p.FoundMatch))
+                {
+                    foreach(var player in _playersInQueue.ToList())
+                    {
+                        if (player.FoundMatch) RemovePlayerFromQueue(player.UserName);
+                    }
+                }
+            }
         }
     }
 
@@ -83,6 +96,7 @@ public class Matchmaking : NetworkBehaviour
         newClientInfo.Password = password;
         newClientInfo.Elo = elo;
         newClientInfo.EloGapMatching = 50;
+        newClientInfo.FoundMatch = false;
         newClientInfo.ClientID = clientId;
         _connectedClients.Add(newClientInfo);
 
@@ -222,7 +236,7 @@ public class Matchmaking : NetworkBehaviour
             if (!foundOpponent)
             {
                 Debug.Log("Couldn't find opponent with ideal elo gap");
-                
+
                 var client = _connectedClients.First(c => c.ClientID == clientId);
                 client.TimeSinceLastGapUpdate = 0.0f;
                 _playersInQueue.Add(client);
@@ -249,6 +263,32 @@ public class Matchmaking : NetworkBehaviour
 
             // Add new entry to logs
             AddLogEntry(LogEntryType.ClientJoinedQueue, client.UserName);
+        }
+    }
+
+    private void CheckForCompatibleOpponent(ConnectedClientInfo player)
+    {
+        // foreach (var player in _playersInQueue)
+        // {
+        //     if (_playersInQueue.Any(p => MathF.Abs(player.Elo - p.Elo) <= player.EloGapMatching))
+        //     {
+        //         var opponent = _playersInQueue.First(p => MathF.Abs(player.Elo - p.Elo) <= player.EloGapMatching);
+        //         RemovePlayerFromQueue(player.UserName);
+        //         RemovePlayerFromQueue(opponent.UserName);
+        //     }
+        // }
+
+        var availableOpponents = _playersInQueue.Where(p => !p.FoundMatch && p != player);
+        
+        if (availableOpponents.Any(o => MathF.Abs(player.Elo - o.Elo) <= player.EloGapMatching))
+        {
+            var opponent = availableOpponents.First(p => MathF.Abs(player.Elo - p.Elo) <= player.EloGapMatching);
+
+            player.FoundMatch = true;
+            opponent.FoundMatch = true;
+
+            Debug.Log($@"Matching {player.UserName} with {opponent.UserName}. 
+                        Elo gap is {Mathf.Abs(player.Elo - opponent.Elo)}");
         }
     }
 
