@@ -5,9 +5,12 @@ using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine.Video;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
 
 public class CanvasManager : MonoBehaviour
 {
+    [SerializeField] private TextMeshProUGUI    _blueTeamInfo;
+    [SerializeField] private TextMeshProUGUI    _greenTeamInfo;
     [SerializeField] private TextMeshProUGUI    _blueTeamScore;
     [SerializeField] private TextMeshProUGUI    _greenTeamScore;
     [SerializeField] private GameObject         _gameStartScreen;
@@ -92,6 +95,19 @@ public class CanvasManager : MonoBehaviour
     private void DisplayGameStartScreen()
     {
         StartCoroutine(DisplayGameStartScreenCR());
+    }
+
+    public void UpdatePlayerInfoInGameUI(string bluePlayerName, string greenPlayerName)
+    {
+        // foreach (var player in FindObjectsOfType<Player>())
+        // {
+        //     if (player.Team == Team.Blue)
+        //         _blueTeamInfo.text = $"{player.UserName} ({player.Elo})";
+        //     else if (player.Team == Team.Green)
+        //         _greenTeamInfo.text = $"{player.UserName} ({player.Elo})";
+        // }
+        _blueTeamInfo.text = bluePlayerName;
+        _greenTeamInfo.text = greenPlayerName;
     }
 
     private IEnumerator DisplayGameStartScreenCR()

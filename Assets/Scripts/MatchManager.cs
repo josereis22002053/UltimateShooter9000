@@ -4,6 +4,8 @@ using Unity.Netcode;
 using UnityEngine;
 using System;
 using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
+using System.Linq;
 
 public class MatchManager : NetworkBehaviour
 {
@@ -24,6 +26,7 @@ public class MatchManager : NetworkBehaviour
 
     private GameState _currentGameState;
     private Dictionary<ulong, PlayerInfo> _connectedClients;
+    private List<PlayerInfo> _connectedPlayersList;
     private DatabaseManager _databaseManager;
 
     private void Awake()
@@ -67,7 +70,7 @@ public class MatchManager : NetworkBehaviour
 
     private void CreatePlayerDictionary()
     {
-        //if (!IsServer) return;
+        if (!IsServer) return;
 
         var players = FindObjectsOfType<Player>();
         Debug.Log($"Found {players.Length} players when creating dictionary");
@@ -76,13 +79,23 @@ public class MatchManager : NetworkBehaviour
         foreach (Player player in players)
         {
             Debug.Log($"Adding {player.UserName} to dictionary");
-            
+
             _connectedClients.Add(player.PlayerId, new PlayerInfo(player.UserName,
                                                                   player.Elo,
                                                                   player.Team));
         }
 
         Debug.Log($"Dictionary has {_connectedClients.Count} after creation");
+        UpdatePlayerInfoUI();
+    }
+
+    private void UpdatePlayerInfoUI()
+    {
+        string bluePlayerName = _connectedClients.FirstOrDefault(c => c.Value.Team == Team.Blue).Value.UserName;
+        string greenPlayerName = _connectedClients.FirstOrDefault(c => c.Value.Team == Team.Green).Value.UserName;
+        
+        FindObjectOfType<CanvasManager>().UpdatePlayerInfoInGameUI(bluePlayerName, greenPlayerName);
+        SyncPlayersInfoUIClientRpc(bluePlayerName, greenPlayerName);
     }
 
     private void StartGame()
@@ -200,7 +213,13 @@ public class MatchManager : NetworkBehaviour
     //     CurrentGameSate = newGameState;
     // }
 
-    private struct PlayerInfo
+    [ClientRpc]
+    private void SyncPlayersInfoUIClientRpc(string blueUserName, string greenUsername)
+    {
+        FindObjectOfType<CanvasManager>().UpdatePlayerInfoInGameUI(blueUserName, greenUsername);
+    }
+
+    public struct PlayerInfo
     {
         public string UserName;
         public int Elo;
