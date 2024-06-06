@@ -101,6 +101,12 @@ public class Matchmaking : NetworkBehaviour
         ConnectedClientInfo client = _connectedClients.First(c => c.ClientID == clientId);
         _connectedClients.Remove(client);
 
+        if (_playersInQueue.Contains(client))
+        {
+            Debug.Log($"Client {client.UserName} was in queue when disconnected. Removing from queue");
+            RemovePlayerFromQueue(client.UserName);
+        }
+
         var entries = _connectedClientsPanel.transform.GetComponentsInChildren<TextMeshProUGUI>();
         foreach (var entry in entries)
         {
@@ -151,16 +157,6 @@ public class Matchmaking : NetworkBehaviour
 
     private void RemovePlayerFromQueue(string userName)
     {
-        // var entries = _clientsInQueuePanel.transform.GetComponentsInChildren<TextMeshProUGUI>();
-        // foreach (var entry in entries)
-        // {
-        //     if (entry.text == userName)
-        //     {
-        //         Destroy(entry.gameObject);
-        //         break;
-        //     }
-        // }
-
         var inQueueEntries = _clientsInQueuePanel.GetComponentsInChildren<TextMeshProUGUI>();
         var playerEntry = inQueueEntries.FirstOrDefault(e => e.text.Contains(userName));
         Destroy(playerEntry.gameObject);
