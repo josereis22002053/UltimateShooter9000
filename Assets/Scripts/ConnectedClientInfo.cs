@@ -7,4 +7,5 @@ public class ConnectedClientInfo : MonoBehaviour
 {
     public ulong ClientID;
     public string UserName;
+    public int Elo;
 }

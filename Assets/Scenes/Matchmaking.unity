@@ -4947,7 +4947,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4061e461d98bbdf489c4790668fe95f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _forceServer: 0
+  _forceServer: 1
   _playerPrefabs: []
   _player1SpawnPoints: []
   _player2SpawnPoints: []
@@ -5425,6 +5425,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _userNameField: {fileID: 1555023877}
   _passwordField: {fileID: 2078727736}
+  _clientInfoPrefab: {fileID: 7786263978363990662, guid: 93c6ece2f1922f14380f84f0df26d0dc,
+    type: 3}
 --- !u!4 &2027079250
 Transform:
   m_ObjectHideFlags: 0

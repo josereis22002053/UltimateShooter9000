@@ -8,8 +8,9 @@ using System;
 
 public class LoginManager : NetworkBehaviour
 {
-    [SerializeField] private TMP_InputField _userNameField;
-    [SerializeField] private TMP_InputField _passwordField;
+    [SerializeField] private TMP_InputField         _userNameField;
+    [SerializeField] private TMP_InputField         _passwordField;
+    [SerializeField] private ConnectedClientInfo    _clientInfoPrefab;
 
     private CanvasManager _canvasManager;
     private DatabaseManager _databaseManager;
@@ -22,11 +23,30 @@ public class LoginManager : NetworkBehaviour
         //if (IsServer)
         _databaseManager = FindObjectOfType<DatabaseManager>();
         _matchmakingManager = FindObjectOfType<Matchmaking>();
+
+        var networkSetup = FindObjectOfType<NetworkSetup>();
+        networkSetup.networkSetupDone += Initialize;
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.F5)) Login();
+    }
+
+    private void Initialize()
+    {
+        _canvasManager.DisplayLoginScreen(!NetworkManager.Singleton.IsServer);
+        
+        if (!IsServer)
+        {
+            var connectedClientInfo = FindObjectOfType<ConnectedClientInfo>();
+            if (connectedClientInfo != null)
+            {
+                (string name, int elo, int kills, int deaths) playerInfo = _databaseManager.GetPlayerInfo(connectedClientInfo.UserName);
+                connectedClientInfo.Elo = playerInfo.elo;
+                _canvasManager.DisplayLoggedInScreen(playerInfo.name, playerInfo.elo, playerInfo.kills, playerInfo.deaths);
+            }
+        }
     }
 
     public void SignUp()
@@ -115,7 +135,7 @@ public class LoginManager : NetworkBehaviour
 
         if (ValidUsername(userName, clientId) && ValidPassword(password, clientId))
         {
-            _databaseManager.AddPlayer(userName, password, 500);
+            _databaseManager.AddPlayer(userName, password, 500, 0, 0);
             DisplayMessageClientRpc(MessageType.CreateAccountSuccessful, clientRpcParams);
         }
     }
@@ -140,8 +160,9 @@ public class LoginManager : NetworkBehaviour
             if (_databaseManager.CheckPlayerCredentials(userName, password))
             {
                 // LOGIN ON CLIENT
-                (string name, int elo) playerInfo = _databaseManager.GetPlayerInfo(userName);
-                LoginClientRpc(playerInfo.name, playerInfo.elo, clientRpcParams);
+                (string name, int elo, int kills, int deaths) playerInfo = _databaseManager.GetPlayerInfo(userName);
+                
+                LoginClientRpc(playerInfo.name, playerInfo.elo, playerInfo.kills, playerInfo.deaths, clientRpcParams);
 
                 // Add to connected clients
                 _matchmakingManager.AddClientToConnectedClients(userName, clientId);
@@ -166,8 +187,14 @@ public class LoginManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void LoginClientRpc(string userName, int elo, ClientRpcParams clientRpcParams = default)
+    private void LoginClientRpc(string userName, int elo, int kills, int deaths, ClientRpcParams clientRpcParams = default)
     {
-        _canvasManager.DisplayLoggedInScreen(userName, elo);
+        _canvasManager.DisplayLoggedInScreen(userName, elo, kills, deaths);
+
+        var clientInfo = Instantiate(_clientInfoPrefab);
+        clientInfo.UserName = userName;
+        clientInfo.Elo = elo;
+
+        DontDestroyOnLoad(clientInfo.gameObject);
     }
 }

@@ -152,16 +152,16 @@ public class CanvasManager : MonoBehaviour
         _serverScreen.SetActive(!status);
     }
 
-    public void DisplayLoggedInScreen(string userName, int elo)
+    public void DisplayLoggedInScreen(string userName, int elo, int kills, int deaths)
     {
-        UpdatePlayerInfo(userName, elo);
+        UpdatePlayerInfo(userName, elo, kills, deaths);
         _loginScreen.SetActive(false);
         _loggedInScreen.SetActive(true);
     }
 
-    private void UpdatePlayerInfo(string userName, int elo)
+    private void UpdatePlayerInfo(string userName, int elo, int kills, int deaths)
     {
-        string aux = $"Player info\n  Username: {userName}\n  Rating: {elo}";
+        string aux = $"Player info\n  Username: {userName}\n  Rating: {elo}\n  Kills: {kills}\n  Deaths: {deaths}";
         _playerInfo.text = aux;
     }
 }

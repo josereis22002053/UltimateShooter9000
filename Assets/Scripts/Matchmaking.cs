@@ -49,7 +49,7 @@ public class Matchmaking : NetworkBehaviour
 
     private void Initialize()
     {
-        _canvasManager.DisplayLoginScreen(!NetworkManager.Singleton.IsServer);
+        //_canvasManager.DisplayLoginScreen(!NetworkManager.Singleton.IsServer);
 
         if (NetworkManager.Singleton.IsServer)
             NetworkManager.Singleton.OnClientDisconnectCallback+= RemoveClientFromConnectedClients;
@@ -64,6 +64,7 @@ public class Matchmaking : NetworkBehaviour
         newClientInfo.UserName = userName;
         newClientInfo.ClientID = clientId;
         _connectedClients.Add(newClientInfo);
+
 
         TextMeshProUGUI newEntry = Instantiate(_logEntryPrefab, _connectedClientsPanel);
         newEntry.text = newClientInfo.UserName;
@@ -143,7 +144,13 @@ public class Matchmaking : NetworkBehaviour
             };
 
             MatchFoundClientRpc(clientRpcParams);
+
+#if UNITY_EDITOR
+            Run("C:\\Users\\Reeiz\\Desktop\\UltimateShooteLogin\\UltimateShooter9000.exe", "--gameServer 7778");
+#endif
+#if UNITY_STANDALONE_WIN
             Run("UltimateShooter9000.exe", "--gameServer 7778");
+#endif
         }
         else
         {

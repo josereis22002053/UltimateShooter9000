@@ -23,12 +23,15 @@ public class MatchManager : NetworkBehaviour
     [SerializeField] private int _requiredKillsToWin = 5;
 
     private GameState _currentGameState;
-
+    private Dictionary<ulong, PlayerInfo> _connectedClients;
+    private DatabaseManager _databaseManager;
 
     private void Awake()
     {
         _currentGameState = GameState.WaitingForPlayers;
         gameStarting += StartGame;
+        gameStarted += CreatePlayerDictionary;
+        GameEnded += UpdatePlayerDatabase;
     }
 
     public void PlayerPrefabInstantiated()
@@ -41,6 +44,7 @@ public class MatchManager : NetworkBehaviour
 
         if (connectedPlayers >= 2)
         {
+            _databaseManager = FindObjectOfType<DatabaseManager>();
             OnGameStarting();
             StartingGameClientRpc();
         }
@@ -59,6 +63,26 @@ public class MatchManager : NetworkBehaviour
     private void OnGameEnded(Team winner)
     {
         GameEnded?.Invoke(winner);
+    }
+
+    private void CreatePlayerDictionary()
+    {
+        //if (!IsServer) return;
+
+        var players = FindObjectsOfType<Player>();
+        Debug.Log($"Found {players.Length} players when creating dictionary");
+        _connectedClients = new Dictionary<ulong, PlayerInfo>();
+        
+        foreach (Player player in players)
+        {
+            Debug.Log($"Adding {player.UserName} to dictionary");
+            
+            _connectedClients.Add(player.PlayerId, new PlayerInfo(player.UserName,
+                                                                  player.Elo,
+                                                                  player.Team));
+        }
+
+        Debug.Log($"Dictionary has {_connectedClients.Count} after creation");
     }
 
     private void StartGame()
@@ -116,6 +140,36 @@ public class MatchManager : NetworkBehaviour
         }
     }
 
+    private void UpdatePlayerDatabase(Team winner)
+    {
+        if (!IsServer) return;
+
+        foreach(var player in _connectedClients.Values)
+        {
+            Debug.Log($"Getting {player.UserName} info from database");
+            (string name, int elo, int kills, int deaths) playerStats = _databaseManager.GetPlayerInfo(player.UserName);
+            
+            int newKills = 0;
+            int newDeaths = 0;
+            int newElo = 0;
+
+            if (player.Team == Team.Blue)
+            {
+                newKills = playerStats.kills + _blueTeamKills;
+                newDeaths = playerStats.deaths + _greenTeamKills;
+            }
+            else if (player.Team == Team.Green)
+            {
+                newKills = playerStats.kills + _greenTeamKills;
+                newDeaths = playerStats.deaths + _blueTeamKills;
+            }
+
+            newElo = player.Team == winner ? playerStats.elo + 10 : playerStats.elo - 10;
+
+            _databaseManager.UpdatePlayerStats(player.UserName, newElo, newKills, newDeaths);
+        }
+    }
+
     // private void UpdateCurrentGameState(GameState newGameState)
     // {
     //     CurrentGameSate = newGameState;
@@ -145,4 +199,19 @@ public class MatchManager : NetworkBehaviour
     // {
     //     CurrentGameSate = newGameState;
     // }
+
+    private struct PlayerInfo
+    {
+        public string UserName;
+        public int Elo;
+        public Team Team;
+
+        public PlayerInfo(string userName, int elo, Team team)
+        {
+            UserName = userName;
+            Elo = elo;
+            Team = team;
+        }
+    }
 }
+

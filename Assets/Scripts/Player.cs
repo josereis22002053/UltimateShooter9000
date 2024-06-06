@@ -14,6 +14,8 @@ public class Player : NetworkBehaviour
     private const float MAX_HEALTH = 100.0f;
 
     public ulong    PlayerId;
+    public string   UserName;
+    public int      Elo;
     public Team     Team;
 
     [SerializeField] private float      _moveSpeed = 5.0f;
@@ -71,6 +73,17 @@ public class Player : NetworkBehaviour
         {
             _health.Value = MAX_HEALTH;
             CanTakeDamage.Value = true;
+        }
+        else if (IsLocalPlayer)
+        {
+            var playerInfo = FindObjectOfType<ConnectedClientInfo>();
+            if (playerInfo == null) Debug.LogError("Couldn't find player info!");
+            else
+            {
+                UserName = playerInfo.UserName;
+                Elo = playerInfo.Elo;
+                SyncClientInfoServerRpc(UserName, Elo);
+            }
         }
            
 
@@ -187,6 +200,13 @@ public class Player : NetworkBehaviour
     {
         PlayerId = playerId;
         Team = team;
+    }
+
+    [ServerRpc]
+    private void SyncClientInfoServerRpc(string userName, int elo)
+    {
+        UserName = userName;
+        Elo = elo;
     }
 
     private void HealthOnValueChanged(float oldValue, float newValue)

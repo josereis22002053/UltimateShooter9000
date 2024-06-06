@@ -36,10 +36,10 @@ public class DatabaseManager : MonoBehaviour
         string[] args = System.Environment.GetCommandLineArgs();
         for (int i = 0; i < args.Length; i++)
         {
-            if (args[i] == "--server")
+            if (args[i] == "--server" || args[i] == "--gameServer")
             {
                 isServer = true;
-                // --server found, this should be a server application
+
                 if (File.Exists(dbPath))
                     Debug.Log("Database exists!");
                 else
@@ -54,10 +54,10 @@ public class DatabaseManager : MonoBehaviour
     {
         if (!isServer) return;
         
-        if (Input.GetKeyDown(KeyCode.KeypadPlus))
-        {
-            AddPlayer(playerToAdd, "123", 100);
-        }
+        // if (Input.GetKeyDown(KeyCode.KeypadPlus))
+        // {
+        //     AddPlayer(playerToAdd, "123", 100);
+        // }
 
         if (Input.GetKeyDown(KeyCode.KeypadEnter))
         {
@@ -67,10 +67,10 @@ public class DatabaseManager : MonoBehaviour
                 Debug.Log($"'{playerToLook}' doesn't exist in database!");
         }
 
-        if (Input.GetKeyDown(KeyCode.KeypadMultiply))
-        {
-            UpdatePlayerElo(playerToLook, newElo);
-        }
+        // if (Input.GetKeyDown(KeyCode.KeypadMultiply))
+        // {
+        //     UpdatePlayerElo(playerToLook, newElo);
+        // }
     }
 
     private void CreateDB()
@@ -82,9 +82,11 @@ public class DatabaseManager : MonoBehaviour
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = @"CREATE TABLE IF NOT EXISTS Players (
-                                        Name VARCHAR(20), 
-                                        Password VARCHAR(20), 
-                                        Elo INT)";
+                                        Name VARCHAR(20),
+                                        Password VARCHAR(20),
+                                        Elo INT,
+                                        Kills INT,
+                                        Deaths INT)";
 
                 command.ExecuteNonQuery();
             }
@@ -142,56 +144,59 @@ public class DatabaseManager : MonoBehaviour
         }
     }
 
-    public void AddPlayer(string name, string password, int elo)
+    public void AddPlayer(string name, string password, int elo, int kills, int deaths)
     {
         using (var connection = new SqliteConnection(databaseName))
         {
             connection.Open();
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = "INSERT INTO Players (Name, Password, Elo) VALUES (@name, @password, @elo)";
+                command.CommandText = "INSERT INTO Players (Name, Password, Elo, Kills, Deaths) VALUES (@name, @password, @elo, @kills, @deaths)";
                 command.Parameters.AddWithValue("@name", name);
                 command.Parameters.AddWithValue("@password", password);
                 command.Parameters.AddWithValue("@elo", elo);
+                command.Parameters.AddWithValue("@kills", kills);
+                command.Parameters.AddWithValue("@deaths", deaths);
                 command.ExecuteNonQuery();
             }
-            connection.Close();
         }
     }
 
-    void UpdatePlayerElo(string name, int newElo)
+    public void UpdatePlayerStats(string name, int newElo, int newKills, int newDeaths)
     {
+        Debug.Log("Updating database");
         using (var connection = new SqliteConnection(databaseName))
         {
             connection.Open();
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = "UPDATE Players SET Elo = @newElo WHERE Name = @name";
+                command.CommandText = "UPDATE Players SET Elo = @newElo, Kills = @newKills, Deaths = @newDeaths WHERE Name = @name";
                 command.Parameters.AddWithValue("@newElo", newElo);
+                command.Parameters.AddWithValue("@newKills", newKills);
+                command.Parameters.AddWithValue("@newDeaths", newDeaths);
                 command.Parameters.AddWithValue("@name", name);
                 int rowsAffected = command.ExecuteNonQuery();
                 
                 if (rowsAffected > 0)
                 {
-                    Debug.Log("Player's Elo updated successfully.");
+                    Debug.Log("Player's stats updated successfully.");
                 }
                 else
                 {
                     Debug.LogWarning("Player not found.");
                 }
             }
-            connection.Close();
         }
     }
 
-    public (string name, int elo) GetPlayerInfo(string name)
+    public (string name, int elo, int kills, int deaths) GetPlayerInfo(string name)
     {
         using (var connection = new SqliteConnection(databaseName))
         {
             connection.Open();
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = "SELECT Name, Elo FROM Players WHERE Name = @name";
+                command.CommandText = "SELECT Name, Elo, Kills, Deaths FROM Players WHERE Name = @name";
                 command.Parameters.AddWithValue("@name", name);
 
                 using (var reader = command.ExecuteReader())
@@ -200,12 +205,14 @@ public class DatabaseManager : MonoBehaviour
                     {
                         string playerName = reader.GetString(0);
                         int playerElo = reader.GetInt32(1);
-                        return (playerName, playerElo);
+                        int playerKills = reader.GetInt32(2);
+                        int playerDeaths = reader.GetInt32(3);
+                        return (playerName, playerElo, playerKills, playerDeaths);
                     }
                     else
                     {
                         Debug.LogWarning("Player not found.");
-                        return("", 0);
+                        return("", 0, 0, 0);
                     }
                 }
             }
