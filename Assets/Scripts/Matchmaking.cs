@@ -181,49 +181,64 @@ public class Matchmaking : NetworkBehaviour
 
         if (_playersInQueue.Count > 0)
         {
-            AddLogEntry(LogEntryType.MatchCreated,
-                        _playersInQueue[0].UserName,
-                        _connectedClients.First(c => c.ClientID == clientId).UserName);
+    // //         AddLogEntry(LogEntryType.MatchCreated,
+    // //                     _playersInQueue[0].UserName,
+    // //                     _connectedClients.First(c => c.ClientID == clientId).UserName);
             
-            var clientRpcParams = new ClientRpcParams
-            {
-                Send = new ClientRpcSendParams
-                {
-                    TargetClientIds = new ulong[] { clientId,  _playersInQueue[0].ClientID}
-                }
-            };
+    // //         var clientRpcParams = new ClientRpcParams
+    // //         {
+    // //             Send = new ClientRpcSendParams
+    // //             {
+    // //                 TargetClientIds = new ulong[] { clientId,  _playersInQueue[0].ClientID}
+    // //             }
+    // //         };
 
 
-            // var entries = _clientsInQueuePanel.transform.GetComponentsInChildren<TextMeshProUGUI>();
-            // foreach (var entry in entries)
-            // {
-            //     if (entry.text == _playersInQueue[0].UserName)
-            //     {
-            //         Destroy(entry.gameObject);
-            //         break;
-            //     }
-            // }
+    // //         RemovePlayerFromQueue(_playersInQueue[0].UserName);
+
+    // //         MatchFoundClientRpc(clientRpcParams);
 
 
-            // AddLogEntry(LogEntryType.ClientLeftQueue, _playersInQueue[0].UserName);
-            // _playersInQueue.RemoveAt(0);
-            RemovePlayerFromQueue(_playersInQueue[0].UserName);
+    // //         // Launch server
+    // //         Run("Builds\\UltimateShooter9000.exe", "--gameServer 7778");
+    // //         //Run("UltimateShooter9000.exe", "--gameServer 7778");
+            
+            bool foundOpponent = false;
 
-            MatchFoundClientRpc(clientRpcParams);
+            var playerJoiningQueue = _connectedClients.FirstOrDefault(c => c.ClientID == clientId);
+            foreach (var player in _playersInQueue)
+            {
+                if (Mathf.Abs(playerJoiningQueue.Elo - player.Elo) <= player.EloGapMatching)
+                {
+                    Debug.Log($@"Matching {playerJoiningQueue.UserName} with {player.UserName}. 
+                              Elo gap is {Mathf.Abs(playerJoiningQueue.Elo - player.Elo)}");
 
-//#if UNITY_EDITOR
-            //string currentPath = 
-            //Run("C:\\Users\\Reeiz\\Desktop\\UltimateShooteLogin\\UltimateShooter9000.exe", "--gameServer 7778");
-            Run("Builds\\UltimateShooter9000.exe", "--gameServer 7778");
-            //Run("UltimateShooter9000.exe", "--gameServer 7778");
-//#endif
+                    RemovePlayerFromQueue(player.UserName);
+                    foundOpponent = true;
+                    break;
+                }
+            }
+            
+            if (!foundOpponent)
+            {
+                Debug.Log("Couldn't find opponent with ideal elo gap");
+                
+                var client = _connectedClients.First(c => c.ClientID == clientId);
+                client.TimeSinceLastGapUpdate = 0.0f;
+                _playersInQueue.Add(client);
 
-// #if UNITY_STANDALONE
-//             Run("UltimateShooter9000.exe", "--gameServer 7778");
-// #endif
+                // Add to Clients in queue panel
+                TextMeshProUGUI newEntry = Instantiate(_logEntryPrefab, _clientsInQueuePanel);
+                newEntry.text = $"{client.UserName} | {client.Elo} | {client.EloGapMatching}";
+
+                // Add new entry to logs
+                AddLogEntry(LogEntryType.ClientJoinedQueue, client.UserName);
+            }
         }
         else
         {
+            Debug.Log("No players were in queue");
+
             var client = _connectedClients.First(c => c.ClientID == clientId);
             client.TimeSinceLastGapUpdate = 0.0f;
             _playersInQueue.Add(client);
