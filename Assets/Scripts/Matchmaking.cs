@@ -56,15 +56,17 @@ public class Matchmaking : NetworkBehaviour
 
     }
 
-    public void AddClientToConnectedClients(string userName, ulong clientId)
+    public void AddClientToConnectedClients(string userName, string password, ulong clientId)
     {
         //_connectedClients.Add()
 
         ConnectedClientInfo newClientInfo = Instantiate(_clientInfoPrefab);
         newClientInfo.UserName = userName;
+        newClientInfo.Password = password;
         newClientInfo.ClientID = clientId;
         _connectedClients.Add(newClientInfo);
 
+        Debug.Log($"Added {newClientInfo.UserName} to connected clients");
 
         TextMeshProUGUI newEntry = Instantiate(_logEntryPrefab, _connectedClientsPanel);
         newEntry.text = newClientInfo.UserName;
@@ -143,14 +145,20 @@ public class Matchmaking : NetworkBehaviour
                 }
             };
 
+            _playersInQueue.RemoveAt(0);
+
             MatchFoundClientRpc(clientRpcParams);
 
-#if UNITY_EDITOR
-            Run("C:\\Users\\Reeiz\\Desktop\\UltimateShooteLogin\\UltimateShooter9000.exe", "--gameServer 7778");
-#endif
-#if UNITY_STANDALONE_WIN
+//#if UNITY_EDITOR
+            //string currentPath = 
+            //Run("C:\\Users\\Reeiz\\Desktop\\UltimateShooteLogin\\UltimateShooter9000.exe", "--gameServer 7778");
+            //Run("Builds\\UltimateShooter9000.exe", "--gameServer 7778");
             Run("UltimateShooter9000.exe", "--gameServer 7778");
-#endif
+//#endif
+
+// #if UNITY_STANDALONE
+//             Run("UltimateShooter9000.exe", "--gameServer 7778");
+// #endif
         }
         else
         {

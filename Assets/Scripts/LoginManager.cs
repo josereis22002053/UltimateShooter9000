@@ -36,17 +36,23 @@ public class LoginManager : NetworkBehaviour
     private void Initialize()
     {
         _canvasManager.DisplayLoginScreen(!NetworkManager.Singleton.IsServer);
-        
-        if (!IsServer)
-        {
-            var connectedClientInfo = FindObjectOfType<ConnectedClientInfo>();
-            if (connectedClientInfo != null)
-            {
-                (string name, int elo, int kills, int deaths) playerInfo = _databaseManager.GetPlayerInfo(connectedClientInfo.UserName);
-                connectedClientInfo.Elo = playerInfo.elo;
-                _canvasManager.DisplayLoggedInScreen(playerInfo.name, playerInfo.elo, playerInfo.kills, playerInfo.deaths);
-            }
-        }
+
+        // if (!IsServer)
+        // {
+        //     Debug.Log("Looking for connected client info");
+        //     var connectedClientInfo = FindObjectOfType<ConnectedClientInfo>();
+        //     if (connectedClientInfo != null)
+        //     {
+        //         Debug.Log("Found connected client info");
+        //         (string name, int elo, int kills, int deaths) playerInfo = _databaseManager.GetPlayerInfo(connectedClientInfo.UserName);
+        //         connectedClientInfo.Elo = playerInfo.elo;
+        //         //Login(connectedClientInfo.UserName, connectedClientInfo.Password);
+        //         //_canvasManager.DisplayLoggedInScreen(playerInfo.name, playerInfo.elo, playerInfo.kills, playerInfo.deaths);
+        //         //AddClientToConnectedClientsServerRpc(playerInfo.name, connectedClientInfo.Password);
+        //     }
+        //     else
+        //         Debug.Log("Didn't find connected client info");
+        // }
     }
 
     public void SignUp()
@@ -65,6 +71,12 @@ public class LoginManager : NetworkBehaviour
         string passwordInput = _passwordField.text;
 
         LoginServerRpc(userNameInput, passwordInput);
+    }
+
+    private void Login(string userName, string password)
+    {
+        Debug.Log("Logging in");
+        LoginServerRpc(userName, password);
     }
 
     private bool ValidUsername(string username, ulong clientId)
@@ -143,6 +155,7 @@ public class LoginManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void LoginServerRpc(string userName, string password, ServerRpcParams serverRpcParams = default)
     {
+        Debug.Log("Logging in server rpc");
         var clientId = serverRpcParams.Receive.SenderClientId;
 
         Debug.Log($"Received server rpc from client {clientId}");
@@ -162,10 +175,10 @@ public class LoginManager : NetworkBehaviour
                 // LOGIN ON CLIENT
                 (string name, int elo, int kills, int deaths) playerInfo = _databaseManager.GetPlayerInfo(userName);
                 
-                LoginClientRpc(playerInfo.name, playerInfo.elo, playerInfo.kills, playerInfo.deaths, clientRpcParams);
+                LoginClientRpc(playerInfo.name, password, playerInfo.elo, playerInfo.kills, playerInfo.deaths, clientRpcParams);
 
                 // Add to connected clients
-                _matchmakingManager.AddClientToConnectedClients(userName, clientId);
+                _matchmakingManager.AddClientToConnectedClients(userName, password, clientId);
             }
             else
             {
@@ -187,14 +200,36 @@ public class LoginManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void LoginClientRpc(string userName, int elo, int kills, int deaths, ClientRpcParams clientRpcParams = default)
+    private void LoginClientRpc(string userName, string password, int elo, int kills, int deaths, ClientRpcParams clientRpcParams = default)
     {
         _canvasManager.DisplayLoggedInScreen(userName, elo, kills, deaths);
+        
+        var connectedClientInfo = FindObjectOfType<ConnectedClientInfo>();
+        if (connectedClientInfo)
+        {
+            Debug.Log($"Already had connect client info on client {connectedClientInfo.UserName}");
+            connectedClientInfo.Elo = elo;
+        }
+        else
+        {
+            Debug.Log($"Didn't have connected client info, creating info on client");
+            var clientInfo = Instantiate(_clientInfoPrefab);
+            clientInfo.UserName = userName;
+            clientInfo.Password = password;
+            clientInfo.Elo = elo;
 
-        var clientInfo = Instantiate(_clientInfoPrefab);
-        clientInfo.UserName = userName;
-        clientInfo.Elo = elo;
+            DontDestroyOnLoad(clientInfo.gameObject);
+        }
+        
 
-        DontDestroyOnLoad(clientInfo.gameObject);
+        //AddClientToConnectedClientsServerRpc(userName, password);
     }
+    
+    // [ServerRpc(RequireOwnership = false)]
+    // private void AddClientToConnectedClientsServerRpc(string userName, string password, ServerRpcParams serverRpcParams = default)
+    // {
+    //     Debug.Log("Adding connected client ServerRPC");
+    //     var clientId = serverRpcParams.Receive.SenderClientId;
+    //     _matchmakingManager.AddClientToConnectedClients(userName, password, clientId);
+    // }
 }

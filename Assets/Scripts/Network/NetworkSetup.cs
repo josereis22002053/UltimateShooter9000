@@ -72,7 +72,7 @@ public class NetworkSetup : MonoBehaviour
         else
             yield return StartAsClientCR();
 
-        OnNetworkSetupDone();
+        //OnNetworkSetupDone();
     }
 
     private IEnumerator StartAsServerCR()
@@ -97,6 +97,7 @@ public class NetworkSetup : MonoBehaviour
         if (networkManager.StartServer())
         {
             Debug.Log($"Serving on port {transport.ConnectionData.Port}...");
+            OnNetworkSetupDone();
         }
         else
         {
@@ -169,6 +170,7 @@ public class NetworkSetup : MonoBehaviour
         if (networkManager.StartClient())
         {
             Debug.Log($"Connecting on port {transport.ConnectionData.Port}...");
+            OnNetworkSetupDone();
         }
         else
         {

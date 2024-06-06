@@ -6,6 +6,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using System.Linq;
+using UnityEngine.SceneManagement;
 
 public class MatchManager : NetworkBehaviour
 {
@@ -93,7 +94,7 @@ public class MatchManager : NetworkBehaviour
     {
         string bluePlayerName = _connectedClients.FirstOrDefault(c => c.Value.Team == Team.Blue).Value.UserName;
         string greenPlayerName = _connectedClients.FirstOrDefault(c => c.Value.Team == Team.Green).Value.UserName;
-        
+
         FindObjectOfType<CanvasManager>().UpdatePlayerInfoInGameUI(bluePlayerName, greenPlayerName);
         SyncPlayersInfoUIClientRpc(bluePlayerName, greenPlayerName);
     }
@@ -183,6 +184,37 @@ public class MatchManager : NetworkBehaviour
         }
     }
 
+    public void BackToLobby()
+    {
+        // var networkManager = FindObjectOfType<NetworkManager>();
+        // networkManager.Shutdown();
+        // Destroy(networkManager.gameObject);
+
+        // var connectionInfoObj = FindObjectOfType<ConnectionInfo>().gameObject;
+        // Destroy(connectionInfoObj);
+
+        // SceneManager.LoadScene(0);
+        StartCoroutine(BackToLobbyCR());
+    }
+
+    private IEnumerator BackToLobbyCR()
+    {
+        var networkManager = FindObjectOfType<NetworkManager>();
+        networkManager.Shutdown();
+
+        yield return null;
+        Destroy(networkManager.gameObject);
+
+        yield return null;
+
+        var connectionInfoObj = FindObjectOfType<ConnectionInfo>().gameObject;
+        Destroy(connectionInfoObj);
+
+        yield return null;
+
+        SceneManager.LoadScene(0);
+    }
+
     // private void UpdateCurrentGameState(GameState newGameState)
     // {
     //     CurrentGameSate = newGameState;
@@ -218,6 +250,8 @@ public class MatchManager : NetworkBehaviour
     {
         FindObjectOfType<CanvasManager>().UpdatePlayerInfoInGameUI(blueUserName, greenUsername);
     }
+
+    
 
     public struct PlayerInfo
     {
