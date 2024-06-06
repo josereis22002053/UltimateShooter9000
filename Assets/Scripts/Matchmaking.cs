@@ -236,6 +236,7 @@ public class Matchmaking : NetworkBehaviour
             if (_matchServersStartingUp.ContainsKey(port))
             {
                 Debug.Log($"MatchServer with port {port} is READY");
+                SendPlayersToMatchServer(port);
             }
             else
             {
@@ -483,6 +484,21 @@ public class Matchmaking : NetworkBehaviour
         };
 
         UpdateMatchmakingStatusClientRpc(MatchmakingStatus.WaitingForServer, clientRpcParams);
+    }
+
+    private void SendPlayersToMatchServer(ushort port)
+    {
+        (ulong client1, ulong client2) clientsToSend = _matchServersStartingUp[port];
+
+        var clientRpcParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = new ulong[] { clientsToSend.client1, clientsToSend.client2 }
+            }
+        };
+
+        JoinMatchClientRpc(port, clientRpcParams);
     }
 
     [ClientRpc]
