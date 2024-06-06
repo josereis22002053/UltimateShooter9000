@@ -746,6 +746,7 @@ MonoBehaviour:
     type: 3}
   newEntryTest: NewEntry
   _connectedClients: []
+  _availablePorts: 621e631e
 --- !u!4 &295072471
 Transform:
   m_ObjectHideFlags: 0
@@ -5859,7 +5860,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4061e461d98bbdf489c4790668fe95f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _forceServer: 0
+  _forceServer: 1
   _playerPrefabs: []
   _player1SpawnPoints: []
   _player2SpawnPoints: []

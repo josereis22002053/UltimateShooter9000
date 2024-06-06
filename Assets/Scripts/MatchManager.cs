@@ -34,6 +34,7 @@ public class MatchManager : NetworkBehaviour
     private DatabaseManager _databaseManager;
 
     private Socket _socket;
+    private ushort _port;
 
     private void Awake()
     {
@@ -55,13 +56,12 @@ public class MatchManager : NetworkBehaviour
         {   
             string[] args = System.Environment.GetCommandLineArgs();
             int matchMakingPort = 0;
-            int serverPort = 0;
 
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i] == "--gameServer")
                 {
-                    serverPort = int.Parse(args[i + 1]);
+                    _port = ushort.Parse(args[i + 1]);
                     matchMakingPort = int.Parse(args[i + 2]);
                     break;
                 }
@@ -99,7 +99,7 @@ public class MatchManager : NetworkBehaviour
                 Debug.Log("Server is ready to communicate with matchmaking");
 
                 // Convert to bytes
-                byte[] msgToSend = Encoding.UTF32.GetBytes($"READY {serverPort}");
+                byte[] msgToSend = Encoding.UTF32.GetBytes($"READY {_port}");
 
                 try
                 {
@@ -121,6 +121,20 @@ public class MatchManager : NetworkBehaviour
     private void OnApplicationQuit()
     {
         Debug.Log("Match server quit");
+
+        // Convert to bytes
+        byte[] msgToSend = Encoding.UTF32.GetBytes($"SHUTDOWN {_port}");
+
+        try
+        {
+            // Send message to server
+            _socket.Send(msgToSend);
+        }
+        catch (SocketException e)
+        {
+            Debug.Log($"SocketException: {e}");
+        }
+
         _socket.Disconnect(false);
         _socket.Close();
     }

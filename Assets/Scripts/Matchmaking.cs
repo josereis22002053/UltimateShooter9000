@@ -17,6 +17,8 @@ using System.Text;
 
 public class Matchmaking : NetworkBehaviour
 {
+    private static ushort[] MATCH_SERVER_PORTS = {7778, 7779};
+
     [SerializeField] private int                    _matchServerCommunicationPort = 1234;
     [SerializeField] private Transform              _connectedClientsPanel;
     [SerializeField] private Transform              _clientsInQueuePanel;
@@ -36,6 +38,12 @@ public class Matchmaking : NetworkBehaviour
     [SerializeField] private List<Socket> _connectedMatchServers = new List<Socket>();
 
     private Socket _listenerSocket;
+
+    [SerializeField] private List<ushort> _availablePorts = new List<ushort>(MATCH_SERVER_PORTS);
+    [SerializeField] private List<ushort> _onGoingMatchPorts = new List<ushort>();
+
+    private Dictionary<ushort, (ulong, ulong)> _matchServersStartingUp = new Dictionary<ushort, (ulong, ulong)>();
+    private Dictionary<Socket, uint> _socketDict = new Dictionary<Socket, uint>();
 
     private void Awake()
     {
@@ -67,6 +75,7 @@ public class Matchmaking : NetworkBehaviour
 
                     newClientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
                     _connectedMatchServers.Add(newClientSocket);
+                    _socketDict.Add(newClientSocket, 0);
                 }
             }
             catch (SocketException e)
@@ -159,7 +168,7 @@ public class Matchmaking : NetworkBehaviour
 
     private void ReceiveMatchServerMessages()
     {
-        foreach (Socket socket in _connectedMatchServers)
+        foreach (Socket socket in _connectedMatchServers.ToList())
         {
             if (socket.Connected)
             {
@@ -183,7 +192,18 @@ public class Matchmaking : NetworkBehaviour
                         }
                     }
                     Debug.Log($"Received message: {incomingMessage}");
-                    ProcessMessage(incomingMessage);  
+                    ProcessMessage(incomingMessage); 
+                    if (incomingMessage == "")
+                    {
+                        Debug.Log("Receiving nothing");
+                        _socketDict[socket]++;
+                        if (_socketDict[socket] >= 500)
+                        {
+                            Debug.Log("Removing socket");
+                            socket.Close();
+                            _connectedMatchServers.Remove(socket);
+                        }
+                    } 
                 }
                 catch (SocketException e)
                 {
@@ -195,25 +215,6 @@ public class Matchmaking : NetworkBehaviour
                         Debug.Log($"SocketException: {e}");
                     }
                 }
-
-                
-                // else
-                // {
-                //     try
-                //     {
-                //         if (client.Poll(1, SelectMode.SelectRead))
-                //         {
-                //         }
-                //     }
-                //     catch (SocketException e)
-                //     {
-                //         Console.WriteLine(e);
-
-                //         // Close the socket if it's not connected anymore
-                //         client.Close();
-                //         _clientSockets.Remove(client);
-                //     }
-                // }
             }
             else
             {
@@ -231,12 +232,28 @@ public class Matchmaking : NetworkBehaviour
 
         if (messageReceived[0] == "READY")
         {
-            Debug.Log($"MatchServer with port {messageReceived[1]} is READY");
+            ushort port = (ushort)int.Parse(messageReceived[1]);
+            if (_matchServersStartingUp.ContainsKey(port))
+            {
+                Debug.Log($"MatchServer with port {port} is READY");
+            }
+            else
+            {
+                Debug.Log($"Received {port}. This port isn't on waiting for startup dictionary");
+            }
+            
             // CHECK IF SERVER EXISTS
             // SEND CLIENTS TO SERVER
         }
         else if (messageReceived[0] == "SHUTDOWN")
         {
+            ushort port = (ushort)int.Parse(messageReceived[1]);
+            if (MATCH_SERVER_PORTS.Contains(port) && _onGoingMatchPorts.Contains(port))
+            {
+                Debug.Log($"MatchServer with port {messageReceived[1]} was SHUTDOWN");
+                _onGoingMatchPorts.Remove(port);
+                _availablePorts.Add(port);
+            }
             // REMOVE SERVER FROM OCCUPIED SERVERS
             // ADD IT BACK TO AVAILABLE SERVERS
         }
@@ -451,6 +468,12 @@ public class Matchmaking : NetworkBehaviour
 
     private void MatchFound(ulong clientId1, ulong clientId2)
     {
+        Run("Builds\\UltimateShooter9000.exe", $"--gameServer {_availablePorts[0]} {_matchServerCommunicationPort}");
+
+        _matchServersStartingUp.Add(_availablePorts[0], (clientId1, clientId2));
+        _onGoingMatchPorts.Add(_availablePorts[0]);
+        _availablePorts.RemoveAt(0);
+
         var clientRpcParams = new ClientRpcParams
         {
             Send = new ClientRpcSendParams
