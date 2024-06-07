@@ -12,9 +12,9 @@ public class LoginManager : NetworkBehaviour
     [SerializeField] private TMP_InputField         _passwordField;
     [SerializeField] private ConnectedClientInfo    _clientInfoPrefab;
 
-    private CanvasManager _canvasManager;
+    private CanvasManager   _canvasManager;
     private DatabaseManager _databaseManager;
-    private Matchmaking _matchmakingManager;
+    private Matchmaking     _matchmakingManager;
 
     private void Start()
     {
@@ -205,16 +205,5 @@ public class LoginManager : NetworkBehaviour
 
             DontDestroyOnLoad(clientInfo.gameObject);
         }
-        
-
-        //AddClientToConnectedClientsServerRpc(userName, password);
     }
-    
-    // [ServerRpc(RequireOwnership = false)]
-    // private void AddClientToConnectedClientsServerRpc(string userName, string password, ServerRpcParams serverRpcParams = default)
-    // {
-    //     Debug.Log("Adding connected client ServerRPC");
-    //     var clientId = serverRpcParams.Receive.SenderClientId;
-    //     _matchmakingManager.AddClientToConnectedClients(userName, password, clientId);
-    // }
 }

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -8,29 +6,29 @@ public class ApplicationSettings : MonoBehaviour
     [System.Serializable]
     public struct AppSettings
     {
-        public MatchMakingSettings MatchMakingSettings;
-        public GameSettings GameSettings;
+        public MatchMakingSettings  MatchMakingSettings;
+        public GameSettings         GameSettings;
     }
 
     [System.Serializable]
     public struct MatchMakingSettings
     {
-        public string MatchMakingServerIp;
-        public int MatchMakingServerPortMatchServers;
-        public ushort MatchMakingServerPortClients;
+        public string   MatchMakingServerIp;
+        public int      MatchMakingServerPortMatchServers;
+        public ushort   MatchMakingServerPortClients;
         public ushort[] MatchServerPorts;
-        public uint InitialCompatibleEloGap;
-        public uint CompatibleEloGapUpdateValue;
-        public uint EloGapUpdateInterval;
+        public uint     InitialCompatibleEloGap;
+        public uint     CompatibleEloGapUpdateValue;
+        public uint     EloGapUpdateInterval;
     }
 
     [System.Serializable]
     public struct GameSettings
     {
-        public string MatchServerIp;
-        public uint RequiredKillsToWin;
-        public ushort EloUpdateValue;
-        public int MinEloAllowed;
+        public string   MatchServerIp;
+        public uint     RequiredKillsToWin;
+        public ushort   EloUpdateValue;
+        public int      MinEloAllowed;
     }
 
     private static ApplicationSettings _instance;

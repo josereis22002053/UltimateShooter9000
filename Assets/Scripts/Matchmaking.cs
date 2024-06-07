@@ -1,11 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using System.IO;
 using TMPro;
-using UnityEngine.UIElements;
-using UnityEditor.Rendering;
 using System.Linq;
 using Unity.Netcode;
 using System.Diagnostics;
@@ -24,7 +20,6 @@ public class Matchmaking : NetworkBehaviour
     [SerializeField] private ConnectionInfo         _connectionInfoPrefab;
     [SerializeField] private TextMeshProUGUI        _logEntryPrefab;
 
-    
 
     private List<ushort>                        _availablePorts;
     private List<ushort>                        _onGoingMatchPorts;
@@ -131,8 +126,6 @@ public class Matchmaking : NetworkBehaviour
 
     private void Initialize()
     {
-        //_canvasManager.DisplayLoginScreen(!NetworkManager.Singleton.IsServer);
-
         if (NetworkManager.Singleton.IsServer)
         {
             NetworkManager.Singleton.OnClientDisconnectCallback+= RemoveClientFromConnectedClients;
@@ -245,9 +238,6 @@ public class Matchmaking : NetworkBehaviour
             {
                 Debug.Log($"Received {port}. This port isn't on waiting for startup dictionary");
             }
-            
-            // CHECK IF SERVER EXISTS
-            // SEND CLIENTS TO SERVER
         }
         else if (messageReceived[0] == "SHUTDOWN")
         {
@@ -258,15 +248,11 @@ public class Matchmaking : NetworkBehaviour
                 _onGoingMatchPorts.Remove(port);
                 _availablePorts.Add(port);
             }
-            // REMOVE SERVER FROM OCCUPIED SERVERS
-            // ADD IT BACK TO AVAILABLE SERVERS
         }
     }
 
     public void AddClientToConnectedClients(string userName, string password, int elo, ulong clientId)
     {
-        //_connectedClients.Add()
-
         ConnectedClientInfo newClientInfo = Instantiate(_clientInfoPrefab);
         newClientInfo.UserName = userName;
         newClientInfo.Password = password;
@@ -283,7 +269,6 @@ public class Matchmaking : NetworkBehaviour
         
 
         AddLogEntry(LogEntryType.ClientConnected, newClientInfo.UserName);
-        //LogEntry newEntry = new LogEntry();
     }
 
     public bool IsClientConnected(string userName)
@@ -381,29 +366,7 @@ public class Matchmaking : NetworkBehaviour
 
         
         if (_playersInQueue.Count > 0)
-        {
-    // //         AddLogEntry(LogEntryType.MatchCreated,
-    // //                     _playersInQueue[0].UserName,
-    // //                     _connectedClients.First(c => c.ClientID == clientId).UserName);
-            
-    // //         var clientRpcParams = new ClientRpcParams
-    // //         {
-    // //             Send = new ClientRpcSendParams
-    // //             {
-    // //                 TargetClientIds = new ulong[] { clientId,  _playersInQueue[0].ClientID}
-    // //             }
-    // //         };
-
-
-    // //         RemovePlayerFromQueue(_playersInQueue[0].UserName);
-
-    // //         MatchFoundClientRpc(clientRpcParams);
-
-
-    // //         // Launch server
-    // //         Run("Builds\\UltimateShooter9000.exe", "--gameServer 7778");
-    // //         //Run("UltimateShooter9000.exe", "--gameServer 7778");
-            
+        {   
             bool foundOpponent = false;
 
             var playerJoiningQueue = _connectedClients.FirstOrDefault(c => c.ClientID == clientId);
@@ -456,16 +419,6 @@ public class Matchmaking : NetworkBehaviour
 
     private void CheckForCompatibleOpponent(ConnectedClientInfo player)
     {
-        // foreach (var player in _playersInQueue)
-        // {
-        //     if (_playersInQueue.Any(p => MathF.Abs(player.Elo - p.Elo) <= player.EloGapMatching))
-        //     {
-        //         var opponent = _playersInQueue.First(p => MathF.Abs(player.Elo - p.Elo) <= player.EloGapMatching);
-        //         RemovePlayerFromQueue(player.UserName);
-        //         RemovePlayerFromQueue(opponent.UserName);
-        //     }
-        // }
-
         var availableOpponents = _playersInQueue.Where(p => !p.FoundMatch && p != player);
         
         if (availableOpponents.Any(o => MathF.Abs(player.Elo - o.Elo) <= player.EloGapMatching))

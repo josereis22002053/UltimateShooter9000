@@ -2,10 +2,6 @@ using UnityEngine;
 using TMPro;
 using Unity.Netcode;
 using System.Collections;
-using Unity.VisualScripting;
-using UnityEngine.Video;
-using System.Text.RegularExpressions;
-using System.Collections.Generic;
 
 public class CanvasManager : MonoBehaviour
 {
@@ -25,8 +21,7 @@ public class CanvasManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI    _error;
     [SerializeField] private TextMeshProUGUI    _playerInfo;
     [SerializeField] private TextMeshProUGUI    _matchmakingStatus;
-
-    [SerializeField] private bool _inGameCanvas;
+    [SerializeField] private bool               _inGameCanvas;
 
     private void Awake()
     {
@@ -101,13 +96,6 @@ public class CanvasManager : MonoBehaviour
 
     public void UpdatePlayerInfoInGameUI(string bluePlayerName, string greenPlayerName)
     {
-        // foreach (var player in FindObjectsOfType<Player>())
-        // {
-        //     if (player.Team == Team.Blue)
-        //         _blueTeamInfo.text = $"{player.UserName} ({player.Elo})";
-        //     else if (player.Team == Team.Green)
-        //         _greenTeamInfo.text = $"{player.UserName} ({player.Elo})";
-        // }
         _blueTeamInfo.text = bluePlayerName;
         _greenTeamInfo.text = greenPlayerName;
     }

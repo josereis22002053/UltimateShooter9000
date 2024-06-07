@@ -12,16 +12,9 @@ public class Bullet : NetworkBehaviour
     public Vector3  Origin;
     public Vector3  Direction;
     
-
-    // public NetworkVariable<ulong> RemotePlayerId;
-    // public NetworkVariable<int> RemoteProjectileId;
-    // public NetworkVariable<float> RemoteShotTime = new();
-    // public NetworkVariable<Vector3> RemoteOrigin;
-    // public NetworkVariable<Vector3> RemoteDirection;
-    
-    [SerializeField] private float _damage  = 50.0f;
-    [SerializeField] private float _speed   = 20.0f;
-    [SerializeField] private LayerMask _hitDetectionLayer;
+    [SerializeField] private float      _damage  = 50.0f;
+    [SerializeField] private float      _speed   = 20.0f;
+    [SerializeField] private LayerMask  _hitDetectionLayer;
 
     private Vector3 _prevPos;
 
@@ -29,11 +22,8 @@ public class Bullet : NetworkBehaviour
     private void Start()
     {
         _prevPos = Origin;
-        // if (ShotTime > 0)
-        //     _prevPos = Origin;
-        // else
-        //     _prevPos = RemoteOrigin.Value;
     }
+
     private void Update()
     {
         ComputePosition();
@@ -70,14 +60,6 @@ public class Bullet : NetworkBehaviour
         float elapsedTime = NetworkManager.Singleton.ServerTime.TimeAsFloat - ShotTime;
         transform.position = Origin + Direction * elapsedTime * _speed;
     }
-
-    // private void OnTriggerEnter(Collider other)
-    // {
-    //     if (!NetworkManager.Singleton.IsServer) return;
-
-    //     Debug.Log(other.transform.name);
-    //     Destroy(gameObject);
-    // }
 
     private void DestroyLocalProjectile(int projectileId, ulong playerId)
     {

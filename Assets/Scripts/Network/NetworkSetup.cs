@@ -29,10 +29,10 @@ public class NetworkSetup : MonoBehaviour
     [SerializeField] private Transform[]    _player1SpawnPoints;
     [SerializeField] private Transform[]    _player2SpawnPoints;
 
-    private bool isServer = false;
-    private bool _isGameServer;
-    private int  _playerPrefabIndex;
-    private ushort _connectionPort;
+    private bool    _isServer = false;
+    private bool    _isGameServer;
+    private int     _playerPrefabIndex;
+    private ushort  _connectionPort;
     
     public delegate void NetworkSetupDone();
     public event NetworkSetupDone networkSetupDone;
@@ -46,33 +46,26 @@ public class NetworkSetup : MonoBehaviour
             if (args[i] == "--server")
             {
                 // --server found, this should be a server application
-                isServer = true;
+                _isServer = true;
                 break;
             }
-            // else if (args[i] == "--gameServer" && SceneManager.GetActiveScene().buildIndex == 0)
-            // {
-            //     SceneManager.LoadScene(1);
-            //     yield break;
-            // }
             else if (args[i] == "--gameServer" && SceneManager.GetActiveScene().buildIndex == 2)
             {
                 _isGameServer = true;
                 _connectionPort = ushort.Parse(args[i + 1]);
-                isServer = true;
+                _isServer = true;
                 break;
             }
         }
 
 #if UNITY_EDITOR
-        if (_forceServer) isServer = true;
+        if (_forceServer) _isServer = true;
 #endif
 
-        if (isServer)
+        if (_isServer)
             yield return StartAsServerCR();
         else
             yield return StartAsClientCR();
-
-        //OnNetworkSetupDone();
     }
 
     private IEnumerator StartAsServerCR()
@@ -159,8 +152,6 @@ public class NetworkSetup : MonoBehaviour
         };
         
         playerToSpawn.InitializePlayerClientRpc(clientId, playerToSpawnTeam);
-        //playerToSpawn.CanTakeDamage.Value = true;
-        //playerPrefabIndex = (playerPrefabIndex + 1) % playerPrefabs.Length;
         _playerPrefabIndex++;
     }
 

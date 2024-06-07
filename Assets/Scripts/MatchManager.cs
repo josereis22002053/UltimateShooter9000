@@ -13,8 +13,6 @@ using System.Text;
 
 public class MatchManager : NetworkBehaviour
 {
-    private int _connectedPlayers;
-
     public delegate void GameStarting();
     public delegate void GameStarted();
     
@@ -22,21 +20,19 @@ public class MatchManager : NetworkBehaviour
     public event GameStarted    gameStarted;
     public event Action<Team>   GameEnded;
 
-    //public static GameState CurrentGameSate = GameState.WaitingForPlayers;
-
     [SerializeField] private int _blueTeamKills = 0;
     [SerializeField] private int _greenTeamKills = 0;
 
-    private GameState _currentGameState;
-    private Dictionary<ulong, PlayerInfo> _connectedClients;
-    private List<PlayerInfo> _connectedPlayersList;
-    private DatabaseManager _databaseManager;
-
-    private Socket _socket;
-    private ushort _port;
-    private uint _requiredKillsToWin;
-    private ushort _eloUpdateValue;
-    private int _minEloAllowed;
+    private GameState                       _currentGameState;
+    private Dictionary<ulong, PlayerInfo>   _connectedClients;
+    private List<PlayerInfo>                _connectedPlayersList;
+    private DatabaseManager                 _databaseManager;
+    private Socket                          _socket;
+    private ushort                          _port;
+    private uint                            _requiredKillsToWin;
+    private ushort                          _eloUpdateValue;
+    private int                             _minEloAllowed;
+    private int                             _connectedPlayers;
 
     private void Awake()
     {
@@ -97,12 +93,6 @@ public class MatchManager : NetworkBehaviour
 
                 // Connect to endpoint
                 _socket.Connect(remoteEndPoint);
-
-                // // // Specify how many requests a Socket can listen before it gives Server busy response.
-                // // // We will listen 1 request at a time
-                // // _socket.Listen(2);
-
-                // // _socket.Blocking = false;
 
                 Debug.Log("Server is ready to communicate with matchmaking");
 
@@ -341,12 +331,6 @@ public class MatchManager : NetworkBehaviour
         SceneManager.LoadScene(0);
     }
 
-    // private void UpdateCurrentGameState(GameState newGameState)
-    // {
-    //     CurrentGameSate = newGameState;
-    //     UpdateCurrentGameStateClientRpc(newGameState);
-    // }
-
     [ClientRpc]
     private void StartingGameClientRpc()
     {
@@ -365,19 +349,11 @@ public class MatchManager : NetworkBehaviour
         OnGameEnded(winner);
     }
 
-    //[ClientRpc]
-    // private void UpdateCurrentGameStateClientRpc(GameState newGameState)
-    // {
-    //     CurrentGameSate = newGameState;
-    // }
-
     [ClientRpc]
     private void SyncPlayersInfoUIClientRpc(string blueUserName, string greenUsername)
     {
         FindObjectOfType<CanvasManager>().UpdatePlayerInfoInGameUI(blueUserName, greenUsername);
     }
-
-    
 
     public struct PlayerInfo
     {

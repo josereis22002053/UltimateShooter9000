@@ -18,23 +18,22 @@ public class Player : NetworkBehaviour
     public int      Elo;
     public Team     Team;
 
-    [SerializeField] private float      _moveSpeed = 5.0f;
-    [SerializeField] private float      _turnSpeed = 5.0f;
-    [SerializeField] private float      _invulnerabilityTime = 3.0f;
-    [SerializeField] private LayerMask  _mouseDetectionLayer;
-    [SerializeField] private LayerMask  _canShootCheckLayer;
-    [SerializeField] private Transform  _shootPoint;
-    [SerializeField] private Transform  _canShootCheckPoint;
-    [SerializeField] private Bullet     _localBulletPrefab;
-    [SerializeField] private Bullet     _networkBulletPrefab;
-    [SerializeField] private TextMeshProUGUI _hpText;
-    [SerializeField] private Renderer _bodyRenderer;
-    [SerializeField] private Material _normalBodyMaterial;
-    [SerializeField] private Material _damagedBodyMaterial;
+    [SerializeField] private float              _moveSpeed = 5.0f;
+    [SerializeField] private float              _turnSpeed = 5.0f;
+    [SerializeField] private float              _invulnerabilityTime = 3.0f;
+    [SerializeField] private LayerMask          _mouseDetectionLayer;
+    [SerializeField] private LayerMask          _canShootCheckLayer;
+    [SerializeField] private Transform          _shootPoint;
+    [SerializeField] private Transform          _canShootCheckPoint;
+    [SerializeField] private Bullet             _localBulletPrefab;
+    [SerializeField] private Bullet             _networkBulletPrefab;
+    [SerializeField] private TextMeshProUGUI    _hpText;
+    [SerializeField] private Renderer           _bodyRenderer;
+    [SerializeField] private Material           _normalBodyMaterial;
+    [SerializeField] private Material           _damagedBodyMaterial;
     
-    private GameObject _normalVXF;
-    private GameObject _invulnerableVXF;
-
+    private GameObject          _normalVXF;
+    private GameObject          _invulnerableVXF;
     private Vector3             _movementVelocity;
     private CharacterController _controller;
     private NetworkObject       _networkObject;
@@ -86,8 +85,7 @@ public class Player : NetworkBehaviour
                 Elo = playerInfo.Elo;
                 SyncClientInfoServerRpc(UserName, Elo);
             }
-        }
-           
+        }  
 
         _health.OnValueChanged += HealthOnValueChanged;
         CanTakeDamage.OnValueChanged += CanTakeDamageOnValueChanged;
@@ -139,10 +137,6 @@ public class Player : NetworkBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hitInfo, Mathf.Infinity, _mouseDetectionLayer))
         {
-            // Vector3 target = hitInfo.point;
-            // target.y = transform.position.y;
-            // transform.LookAt(target);
-
             Vector3 target = hitInfo.point;
             target.y = transform.position.y;
             target = target - transform.position;
