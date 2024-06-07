@@ -8,74 +8,34 @@ using UnityEngine;
 
 public class DatabaseManager : MonoBehaviour
 {
-    private string databaseName = "URI=file:Players.db";
-
-    private string dbSimpleName = "Players.db";
-
-    [SerializeField] private string playerToLook = "PlayerName";
-    [SerializeField] private string playerToAdd = "PlayerName";
-    [SerializeField] private int newElo = 500;
-
-
+    private string _dbName = "Players.db";
+    private string _dbPath;
     private bool isServer;
 
     private void Start()
     {
-        string path = Directory.GetCurrentDirectory();
-        string dbPath = Path.Combine(path, dbSimpleName);
+        string path = Application.persistentDataPath;
+        _dbPath = "URI=file:" + Path.Combine(path, _dbName);
+        Debug.Log(_dbPath);
 
-        // if (NetworkManager.Singleton.IsServer)
-        // {
-        //     if (File.Exists(dbPath))
-        //         Debug.Log("Database exists!");
-        //     else
-        //         CreateDB();
-        // }
-
+        var aux = FindObjectOfType<ApplicationStarter>();
 
         string[] args = System.Environment.GetCommandLineArgs();
         for (int i = 0; i < args.Length; i++)
         {
-            if (args[i] == "--server" || args[i] == "--gameServer")
+            if (args[i] == "--server" || args[i] == "--gameServer" || (aux && aux.IsServer))
             {
                 isServer = true;
 
-                if (File.Exists(dbPath))
-                    Debug.Log("Database exists!");
-                else
-                    CreateDB();
+                InitializeDB();
+                break;
             }
         }
-        
-        //CreateDB();
     }
 
-    private void Update()
+    private void InitializeDB()
     {
-        if (!isServer) return;
-        
-        // if (Input.GetKeyDown(KeyCode.KeypadPlus))
-        // {
-        //     AddPlayer(playerToAdd, "123", 100);
-        // }
-
-        if (Input.GetKeyDown(KeyCode.KeypadEnter))
-        {
-            if (PlayerExists(playerToLook))
-                Debug.Log($"'{playerToLook}' exists in database!");
-            else
-                Debug.Log($"'{playerToLook}' doesn't exist in database!");
-        }
-
-        // if (Input.GetKeyDown(KeyCode.KeypadMultiply))
-        // {
-        //     UpdatePlayerElo(playerToLook, newElo);
-        // }
-    }
-
-    private void CreateDB()
-    {
-        using (var connection = new SqliteConnection(databaseName))
+        using (var connection = new SqliteConnection(_dbPath))
         {
             connection.Open();
 
@@ -93,6 +53,8 @@ public class DatabaseManager : MonoBehaviour
 
             connection.Close();
         }
+
+        Debug.Log("Initialized database!");
     }
 
     public bool PlayerExists(string playerName)
@@ -100,7 +62,7 @@ public class DatabaseManager : MonoBehaviour
         bool playerExists = false;
 
         // Connect to database
-        using (var conn = new SqliteConnection(databaseName))
+        using (var conn = new SqliteConnection(_dbPath))
         {
             conn.Open();
 
@@ -129,7 +91,7 @@ public class DatabaseManager : MonoBehaviour
 
     public bool CheckPlayerCredentials(string name, string password)
     {
-        using (var connection = new SqliteConnection(databaseName))
+        using (var connection = new SqliteConnection(_dbPath))
         {
             connection.Open();
             using (var command = connection.CreateCommand())
@@ -146,7 +108,7 @@ public class DatabaseManager : MonoBehaviour
 
     public void AddPlayer(string name, string password, int elo, int kills, int deaths)
     {
-        using (var connection = new SqliteConnection(databaseName))
+        using (var connection = new SqliteConnection(_dbPath))
         {
             connection.Open();
             using (var command = connection.CreateCommand())
@@ -165,7 +127,7 @@ public class DatabaseManager : MonoBehaviour
     public void UpdatePlayerStats(string name, int newElo, int newKills, int newDeaths)
     {
         Debug.Log("Updating database");
-        using (var connection = new SqliteConnection(databaseName))
+        using (var connection = new SqliteConnection(_dbPath))
         {
             connection.Open();
             using (var command = connection.CreateCommand())
@@ -191,7 +153,7 @@ public class DatabaseManager : MonoBehaviour
 
     public (string name, int elo, int kills, int deaths) GetPlayerInfo(string name)
     {
-        using (var connection = new SqliteConnection(databaseName))
+        using (var connection = new SqliteConnection(_dbPath))
         {
             connection.Open();
             using (var command = connection.CreateCommand())
