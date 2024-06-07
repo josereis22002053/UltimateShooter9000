@@ -494,6 +494,10 @@ public class Matchmaking : NetworkBehaviour
         };
 
         UpdateMatchmakingStatusClientRpc(MatchmakingStatus.WaitingForServer, clientRpcParams);
+
+        AddLogEntry(LogEntryType.MatchCreated,
+                        _connectedClients.First(c => c.ClientID == clientId1).UserName,
+                        _connectedClients.First(c => c.ClientID == clientId2).UserName);
     }
 
     private void SendPlayersToMatchServer(ushort port)
