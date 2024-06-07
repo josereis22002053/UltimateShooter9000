@@ -18,7 +18,8 @@ public class ApplicationSettings : MonoBehaviour
         public string MatchMakingServerIp;
         public int MatchMakingServerPort;
         public ushort[] MatchServerPorts;
-        public uint CompatibleEloGap;
+        public uint InitialCompatibleEloGap;
+        public uint CompatibleEloGapUpdateValue;
         public uint EloGapUpdateInterval;
     }
 
@@ -80,7 +81,8 @@ public class ApplicationSettings : MonoBehaviour
         appSettings.MatchMakingSettings.MatchMakingServerIp = "localhost";
         appSettings.MatchMakingSettings.MatchMakingServerPort = 8000;
         appSettings.MatchMakingSettings.MatchServerPorts = new ushort[] {8885, 8886, 8887, 8888};
-        appSettings.MatchMakingSettings.CompatibleEloGap = 50;
+        appSettings.MatchMakingSettings.InitialCompatibleEloGap = 50;
+        appSettings.MatchMakingSettings.CompatibleEloGapUpdateValue = 50;
         appSettings.MatchMakingSettings.EloGapUpdateInterval = 5;
 
         appSettings.GameSettings.MatchServerIp = "127.0.0.1";

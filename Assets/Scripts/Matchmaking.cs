@@ -17,9 +17,6 @@ using System.Text;
 
 public class Matchmaking : NetworkBehaviour
 {
-    private static ushort[] MATCH_SERVER_PORTS = {7778, 7779};
-
-    [SerializeField] private int                    _matchServerCommunicationPort = 1234;
     [SerializeField] private Transform              _connectedClientsPanel;
     [SerializeField] private Transform              _clientsInQueuePanel;
     [SerializeField] private Transform              _logsPanel;
@@ -27,30 +24,35 @@ public class Matchmaking : NetworkBehaviour
     [SerializeField] private ConnectionInfo         _connectionInfoPrefab;
     [SerializeField] private TextMeshProUGUI        _logEntryPrefab;
 
-    [SerializeField] private string newEntryTest = "NewEntry";
     
-    [SerializeField] private List<ConnectedClientInfo> _connectedClients = new List<ConnectedClientInfo>();
 
-    CanvasManager _canvasManager;
-    private List<ConnectedClientInfo> _playersInQueue;
-
-    
-    [SerializeField] private List<Socket> _connectedMatchServers = new List<Socket>();
-
-    private Socket _listenerSocket;
-
-    [SerializeField] private List<ushort> _availablePorts = new List<ushort>(MATCH_SERVER_PORTS);
-    [SerializeField] private List<ushort> _onGoingMatchPorts = new List<ushort>();
-
-    private Dictionary<ushort, (ulong, ulong)> _matchServersStartingUp = new Dictionary<ushort, (ulong, ulong)>();
-    private Dictionary<Socket, uint> _socketDict = new Dictionary<Socket, uint>();
+    private List<ushort>                        _availablePorts;
+    private List<ushort>                        _onGoingMatchPorts;
+    private List<Socket>                        _connectedMatchServers;
+    private List<ConnectedClientInfo>           _connectedClients;
+    private List<ConnectedClientInfo>           _playersInQueue;
+    private Dictionary<ushort, (ulong, ulong)>  _matchServersStartingUp;
+    private Dictionary<Socket, uint>            _socketDict;
+    private Socket                              _listenerSocket;
+    private CanvasManager                       _canvasManager;
+    private int                                 _matchServerPort;
+    private uint                                _initialCompatibleEloGap;
+    private uint                                _compatibleEloGapUpdateValue;
+    private uint                                _eloGapUpdateInterval;
 
     private void Awake()
     {
-        //_connectedClients = new List<TextMeshProUGUI>();
-        _playersInQueue = new List<ConnectedClientInfo>();
-
-        //_connectedMatchServers= new List<Socket>();
+        _availablePorts             = new List<ushort>(ApplicationSettings.Instance.Settings.MatchMakingSettings.MatchServerPorts);
+        _onGoingMatchPorts          = new List<ushort>();
+        _connectedMatchServers      = new List<Socket>();
+        _connectedClients           = new List<ConnectedClientInfo>();
+        _playersInQueue             = new List<ConnectedClientInfo>();
+        _matchServersStartingUp     = new Dictionary<ushort, (ulong, ulong)>();
+        _socketDict                 = new Dictionary<Socket, uint>();
+        _matchServerPort            = ApplicationSettings.Instance.Settings.MatchMakingSettings.MatchMakingServerPort;
+        _initialCompatibleEloGap    = ApplicationSettings.Instance.Settings.MatchMakingSettings.InitialCompatibleEloGap;
+        _compatibleEloGapUpdateValue= ApplicationSettings.Instance.Settings.MatchMakingSettings.CompatibleEloGapUpdateValue;
+        _eloGapUpdateInterval       = ApplicationSettings.Instance.Settings.MatchMakingSettings.EloGapUpdateInterval;
     }
 
     private void Start()
@@ -100,9 +102,9 @@ public class Matchmaking : NetworkBehaviour
             foreach(var player in _playersInQueue)
             {
                 player.TimeSinceLastGapUpdate += Time.deltaTime;
-                if (player.TimeSinceLastGapUpdate >= 5.0f)
+                if (player.TimeSinceLastGapUpdate >= _eloGapUpdateInterval)
                 {
-                    player.EloGapMatching += 50;
+                    player.EloGapMatching += _compatibleEloGapUpdateValue;
                     player.TimeSinceLastGapUpdate = 0.0f;
 
                     var inQueueEntries = _clientsInQueuePanel.GetComponentsInChildren<TextMeshProUGUI>();
@@ -144,7 +146,7 @@ public class Matchmaking : NetworkBehaviour
         {
             // Create listener socket
             // Prepare an endpoint for the socket, at port 80
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _matchServerCommunicationPort);
+            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _matchServerPort);
 
             // Create a Socket that will use TCP protocol
             _listenerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -249,7 +251,7 @@ public class Matchmaking : NetworkBehaviour
         else if (messageReceived[0] == "SHUTDOWN")
         {
             ushort port = (ushort)int.Parse(messageReceived[1]);
-            if (MATCH_SERVER_PORTS.Contains(port) && _onGoingMatchPorts.Contains(port))
+            if (ApplicationSettings.Instance.Settings.MatchMakingSettings.MatchServerPorts.Contains(port) && _onGoingMatchPorts.Contains(port))
             {
                 Debug.Log($"MatchServer with port {messageReceived[1]} was SHUTDOWN");
                 _onGoingMatchPorts.Remove(port);
@@ -268,7 +270,7 @@ public class Matchmaking : NetworkBehaviour
         newClientInfo.UserName = userName;
         newClientInfo.Password = password;
         newClientInfo.Elo = elo;
-        newClientInfo.EloGapMatching = 50;
+        newClientInfo.EloGapMatching = _initialCompatibleEloGap;
         newClientInfo.FoundMatch = false;
         newClientInfo.ClientID = clientId;
         _connectedClients.Add(newClientInfo);
@@ -469,7 +471,7 @@ public class Matchmaking : NetworkBehaviour
 
     private void MatchFound(ulong clientId1, ulong clientId2)
     {
-        Run("Builds\\UltimateShooter9000.exe", $"--gameServer {_availablePorts[0]} {_matchServerCommunicationPort}");
+        Run("Builds\\UltimateShooter9000.exe", $"--gameServer {_availablePorts[0]} {_matchServerPort}");
 
         _matchServersStartingUp.Add(_availablePorts[0], (clientId1, clientId2));
         _onGoingMatchPorts.Add(_availablePorts[0]);
