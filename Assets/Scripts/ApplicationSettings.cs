@@ -1,0 +1,100 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using UnityEngine;
+
+public class ApplicationSettings : MonoBehaviour
+{
+    [System.Serializable]
+    public struct AppSettings
+    {
+        public MatchMakingSettings MatchMakingSettings;
+        public GameSettings GameSettings;
+    }
+
+    [System.Serializable]
+    public struct MatchMakingSettings
+    {
+        public string MatchMakingServerIp;
+        public int MatchMakingServerPort;
+        public ushort[] MatchServerPorts;
+        public uint CompatibleEloGap;
+        public uint EloGapUpdateInterval;
+    }
+
+    [System.Serializable]
+    public struct GameSettings
+    {
+        public string MatchServerIp;
+        public uint RequiredKillsToWin;
+        public ushort EloUpdateValue;
+    }
+
+    private static ApplicationSettings _instance;
+
+    public static ApplicationSettings Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindObjectOfType<ApplicationSettings>();
+                if (_instance == null)
+                {
+                    _instance = new GameObject("ApplicationSettings", 
+                        typeof(ApplicationSettings)).GetComponent<ApplicationSettings>();
+                }
+            }
+            return _instance;
+        }
+        private set
+        {
+            _instance = value;
+        }
+    }
+
+    public AppSettings Settings;
+
+    private void Awake()
+    {
+        DontDestroyOnLoad(this.gameObject);
+
+        string settingsFileName = "AppSettings.json";
+        string currentPath = Directory.GetCurrentDirectory();
+        string settingsPath = Path.Combine(currentPath, settingsFileName);
+
+        if (File.Exists(settingsPath))
+            Settings = GetApplicationSettings(settingsPath);
+        else
+        {
+            CreateApplicationSettings(settingsPath);
+            Settings = GetApplicationSettings(settingsPath);
+        }   
+    }
+
+    private void CreateApplicationSettings(string path)
+    {
+        Debug.Log("Creating settings");
+        AppSettings appSettings = new AppSettings();
+
+        appSettings.MatchMakingSettings.MatchMakingServerIp = "localhost";
+        appSettings.MatchMakingSettings.MatchMakingServerPort = 8000;
+        appSettings.MatchMakingSettings.MatchServerPorts = new ushort[] {8885, 8886, 8887, 8888};
+        appSettings.MatchMakingSettings.CompatibleEloGap = 50;
+        appSettings.MatchMakingSettings.EloGapUpdateInterval = 5;
+
+        appSettings.GameSettings.MatchServerIp = "127.0.0.1";
+        appSettings.GameSettings.RequiredKillsToWin = 2;
+        appSettings.GameSettings.EloUpdateValue = 10;
+
+        string appSettingsJson = JsonUtility.ToJson(appSettings, true);
+        File.WriteAllText(path, appSettingsJson);
+    }
+
+    private AppSettings GetApplicationSettings(string path)
+    {
+        string appSettingsJson = File.ReadAllText(path);
+
+        return JsonUtility.FromJson<AppSettings>(appSettingsJson);
+    }
+}
