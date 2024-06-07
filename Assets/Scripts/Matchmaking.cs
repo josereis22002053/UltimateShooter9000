@@ -239,6 +239,7 @@ public class Matchmaking : NetworkBehaviour
             {
                 Debug.Log($"MatchServer with port {port} is READY");
                 SendPlayersToMatchServer(port);
+                _matchServersStartingUp.Remove(port);
             }
             else
             {

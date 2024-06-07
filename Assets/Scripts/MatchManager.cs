@@ -311,6 +311,10 @@ public class MatchManager : NetworkBehaviour
             OnGameEnded(winner);
             EndGameClientRpc(winner);
         }
+        else if (_currentGameState == GameState.Finished)
+        {
+            
+        }
     }
 
 

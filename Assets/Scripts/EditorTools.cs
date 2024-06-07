@@ -27,7 +27,7 @@ public class EditorTools : MonoBehaviour
             .ToArray();
         buildPlayerOptions.locationPathName = Path.Combine("Builds", "UltimateShooter9000.exe");
         buildPlayerOptions.target = BuildTarget.StandaloneWindows64;
-        buildPlayerOptions.options = BuildOptions.None;
+        buildPlayerOptions.options = BuildOptions.Development;
         // Perform the build
         var report = BuildPipeline.BuildPlayer(buildPlayerOptions);
         // Output the result of the build
