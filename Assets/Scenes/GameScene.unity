@@ -433,8 +433,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 36.019493}
-  m_Center: {x: 0, y: 0, z: 17.509748}
+  m_Size: {x: 1, y: 1, z: 38.565357}
+  m_Center: {x: 0, y: 0, z: 16.236814}
 --- !u!23 &200386203
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -574,8 +574,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 43.002, y: 1, z: 1}
-  m_Center: {x: -21.001003, y: 0, z: 0}
+  m_Size: {x: 45.688828, y: 1, z: 1}
+  m_Center: {x: -19.657589, y: 0, z: 0}
 --- !u!23 &374098388
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2200,9 +2200,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d581bee4ba298340aeb592beacca7f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerToLook: PlayerName
-  playerToAdd: PlayerName
-  newElo: 500
 --- !u!4 &1219310084
 Transform:
   m_ObjectHideFlags: 0
@@ -2409,8 +2406,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 23.396128, y: 1, z: 1}
-  m_Center: {x: 11.198064, y: 0, z: 0}
+  m_Size: {x: 25.8953, y: 1, z: 1}
+  m_Center: {x: 9.948478, y: 0, z: 0}
 --- !u!23 &1529226943
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3178,6 +3175,7 @@ MonoBehaviour:
   _result: {fileID: 2034798120}
   _error: {fileID: 0}
   _playerInfo: {fileID: 0}
+  _matchmakingStatus: {fileID: 0}
   _inGameCanvas: 1
 --- !u!114 &1900764694
 MonoBehaviour:
@@ -3302,7 +3300,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _blueTeamKills: 0
   _greenTeamKills: 0
-  _requiredKillsToWin: 2
 --- !u!1 &1994019988
 GameObject:
   m_ObjectHideFlags: 0
@@ -3669,8 +3666,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 42.789856}
-  m_Center: {x: 0, y: 0, z: -20.89493}
+  m_Size: {x: 1, y: 1, z: 45.64957}
+  m_Center: {x: 0, y: 0, z: -19.465076}
 --- !u!23 &2058948618
 MeshRenderer:
   m_ObjectHideFlags: 0

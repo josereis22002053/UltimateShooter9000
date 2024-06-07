@@ -22,7 +22,9 @@ public class Player : NetworkBehaviour
     [SerializeField] private float      _turnSpeed = 5.0f;
     [SerializeField] private float      _invulnerabilityTime = 3.0f;
     [SerializeField] private LayerMask  _mouseDetectionLayer;
+    [SerializeField] private LayerMask  _canShootCheckLayer;
     [SerializeField] private Transform  _shootPoint;
+    [SerializeField] private Transform  _canShootCheckPoint;
     [SerializeField] private Bullet     _localBulletPrefab;
     [SerializeField] private Bullet     _networkBulletPrefab;
     [SerializeField] private TextMeshProUGUI _hpText;
@@ -106,7 +108,16 @@ public class Player : NetworkBehaviour
         {
             RotateToMouse();
 
-            if (Input.GetMouseButtonDown(0)) Shoot(_shootPoint.position, _shootPoint.rotation);
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (Physics.Raycast(_canShootCheckPoint.position, _canShootCheckPoint.forward,
+                    out RaycastHit hitInfo, (_shootPoint.position - _canShootCheckPoint.position).magnitude,_canShootCheckLayer))
+                {
+                    Debug.Log("Not gonna shoot");
+                    return;
+                }
+                Shoot(_shootPoint.position, _shootPoint.rotation);
+            }
         }
 
         _hpText.transform.parent.transform.LookAt(Camera.main.transform);
