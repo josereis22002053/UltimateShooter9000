@@ -53,6 +53,9 @@ public class MatchManager : NetworkBehaviour
     {
         var networkSetup = FindObjectOfType<NetworkSetup>();
         networkSetup.networkSetupDone += ConnectToMatchMakingServer;
+
+        var networkManager = FindObjectOfType<NetworkManager>();
+        networkManager.OnClientDisconnectCallback += CheckIfPlayerQuitDuringMatch;
     }
 
     private void ConnectToMatchMakingServer()
@@ -290,6 +293,23 @@ public class MatchManager : NetworkBehaviour
                 newElo = Mathf.Max(_minEloAllowed, playerStats.elo - _eloUpdateValue);
 
             _databaseManager.UpdatePlayerStats(player.UserName, newElo, newKills, newDeaths);
+        }
+    }
+
+    private void CheckIfPlayerQuitDuringMatch(ulong clientId)
+    {
+        if (!IsServer) return;
+
+        if (_currentGameState != GameState.Finished)
+        {
+            var playerWhoQuit = _connectedClients[clientId];
+            Debug.Log($"{playerWhoQuit.UserName} quit during match");
+            Team winner = playerWhoQuit.Team == Team.Blue ? Team.Green : Team.Blue;
+
+            Debug.Log($"Game ended. Winner is {winner}");
+            _currentGameState = GameState.Finished;
+            OnGameEnded(winner);
+            EndGameClientRpc(winner);
         }
     }
 
