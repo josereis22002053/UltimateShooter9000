@@ -16,7 +16,8 @@ public class ApplicationSettings : MonoBehaviour
     public struct MatchMakingSettings
     {
         public string MatchMakingServerIp;
-        public int MatchMakingServerPort;
+        public int MatchMakingServerPortMatchServers;
+        public ushort MatchMakingServerPortClients;
         public ushort[] MatchServerPorts;
         public uint InitialCompatibleEloGap;
         public uint CompatibleEloGapUpdateValue;
@@ -79,8 +80,9 @@ public class ApplicationSettings : MonoBehaviour
         Debug.Log("Creating settings");
         AppSettings appSettings = new AppSettings();
 
-        appSettings.MatchMakingSettings.MatchMakingServerIp = "localhost";
-        appSettings.MatchMakingSettings.MatchMakingServerPort = 8000;
+        appSettings.MatchMakingSettings.MatchMakingServerIp = "127.0.0.1";
+        appSettings.MatchMakingSettings.MatchMakingServerPortMatchServers = 8000;
+        appSettings.MatchMakingSettings.MatchMakingServerPortClients = 7777;
         appSettings.MatchMakingSettings.MatchServerPorts = new ushort[] {8885, 8886, 8887, 8888};
         appSettings.MatchMakingSettings.InitialCompatibleEloGap = 50;
         appSettings.MatchMakingSettings.CompatibleEloGapUpdateValue = 50;

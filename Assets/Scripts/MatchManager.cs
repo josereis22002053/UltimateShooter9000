@@ -77,7 +77,7 @@ public class MatchManager : NetworkBehaviour
                 // Convert the server hostname/IP to an IP address 
                 // For maximum compatibility, I'm using IPv4, so I make sure I'm using
                 // a IPv4 interface
-                IPHostEntry ipHost = Dns.GetHostEntry("localhost");
+                IPHostEntry ipHost = Dns.GetHostEntry(ApplicationSettings.Instance.Settings.MatchMakingSettings.MatchMakingServerIp);
                 IPAddress   ipAddress = null;
                 for (int i = 0; i < ipHost.AddressList.Length; i++)
                 {

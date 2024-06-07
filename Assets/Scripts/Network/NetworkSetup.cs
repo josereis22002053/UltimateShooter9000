@@ -57,7 +57,7 @@ public class NetworkSetup : MonoBehaviour
             else if (args[i] == "--gameServer" && SceneManager.GetActiveScene().buildIndex == 2)
             {
                 _isGameServer = true;
-                _connectionPort = (ushort)int.Parse(args[i + 1]);
+                _connectionPort = ushort.Parse(args[i + 1]);
                 isServer = true;
                 break;
             }
@@ -81,7 +81,22 @@ public class NetworkSetup : MonoBehaviour
         networkManager.enabled = true;
         var transport = GetComponent<UnityTransport>();
 
-        if (_isGameServer) transport.ConnectionData.Port = _connectionPort;
+        if (_isGameServer) 
+        {
+            // Set the address to the one provided by app settings for match servers
+            transport.ConnectionData.Address = ApplicationSettings.Instance.Settings.GameSettings.MatchServerIp;
+
+            // It's a match server so we use the port provided by matchmaking
+            transport.ConnectionData.Port = _connectionPort;
+        }
+        else
+        {
+            // Set the address to the one provided by app settings for matchmaking
+            transport.ConnectionData.Address = ApplicationSettings.Instance.Settings.MatchMakingSettings.MatchMakingServerIp;
+
+            // It's a matchmaking server so we use the port provided by by app settings for matchmaking
+            transport.ConnectionData.Port = ApplicationSettings.Instance.Settings.MatchMakingSettings.MatchMakingServerPortClients;
+        }
         transport.enabled = true;
 
         // Wait a frame for setups to be done
@@ -161,7 +176,22 @@ public class NetworkSetup : MonoBehaviour
         var transport = GetComponent<UnityTransport>();
 
         var connectionInfo = FindObjectOfType<ConnectionInfo>();
-        if (connectionInfo) transport.ConnectionData.Port = connectionInfo.ConnectionPort;
+        if (connectionInfo)
+        {
+            // Connecting to match server
+            transport.ConnectionData.Address = ApplicationSettings.Instance.Settings.GameSettings.MatchServerIp;
+
+            // Connecting to a match server so we use the port provided by matchmaking
+            transport.ConnectionData.Port = connectionInfo.ConnectionPort;
+        }
+        else
+        {
+            // Connecting to matchmaking
+            transport.ConnectionData.Address = ApplicationSettings.Instance.Settings.MatchMakingSettings.MatchMakingServerIp;
+
+            // Use matchmaking port for clients
+            transport.ConnectionData.Port = ApplicationSettings.Instance.Settings.MatchMakingSettings.MatchMakingServerPortClients;
+        }
         transport.enabled = true;
 
         // Wait a frame for setups to be done

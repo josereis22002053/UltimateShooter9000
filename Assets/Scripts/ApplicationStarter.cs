@@ -9,7 +9,7 @@ public class ApplicationStarter : MonoBehaviour
 {
     private void Awake()
     {
-        Debug.Log(ApplicationSettings.Instance.Settings.MatchMakingSettings.MatchMakingServerIp);
+        //Debug.Log(ApplicationSettings.Instance.Settings.MatchMakingSettings.MatchMakingServerIp);
     }
 
     private void Start()

@@ -49,7 +49,7 @@ public class Matchmaking : NetworkBehaviour
         _playersInQueue             = new List<ConnectedClientInfo>();
         _matchServersStartingUp     = new Dictionary<ushort, (ulong, ulong)>();
         _socketDict                 = new Dictionary<Socket, uint>();
-        _matchServerPort            = ApplicationSettings.Instance.Settings.MatchMakingSettings.MatchMakingServerPort;
+        _matchServerPort            = ApplicationSettings.Instance.Settings.MatchMakingSettings.MatchMakingServerPortMatchServers;
         _initialCompatibleEloGap    = ApplicationSettings.Instance.Settings.MatchMakingSettings.InitialCompatibleEloGap;
         _compatibleEloGapUpdateValue= ApplicationSettings.Instance.Settings.MatchMakingSettings.CompatibleEloGapUpdateValue;
         _eloGapUpdateInterval       = ApplicationSettings.Instance.Settings.MatchMakingSettings.EloGapUpdateInterval;
