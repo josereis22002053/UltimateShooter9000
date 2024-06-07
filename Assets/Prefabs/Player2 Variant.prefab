@@ -90,6 +90,12 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 52678eac711e89a48ad29f0da741e29d, type: 2}
     - target: {fileID: 5561240157354569291, guid: 641f96aeecb3f3644857d3d34294a551,
         type: 3}
+      propertyPath: _localBulletPrefab
+      value: 
+      objectReference: {fileID: 16517346336546701, guid: bb4459ba14aa9c84ab7e4c227b42669f,
+        type: 3}
+    - target: {fileID: 5561240157354569291, guid: 641f96aeecb3f3644857d3d34294a551,
+        type: 3}
       propertyPath: _normalBodyMaterial
       value: 
       objectReference: {fileID: 2100000, guid: 52678eac711e89a48ad29f0da741e29d, type: 2}

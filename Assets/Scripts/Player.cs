@@ -181,7 +181,7 @@ public class Player : NetworkBehaviour
     [ServerRpc]
     void RequestBulletServerRpc(Vector3 pos, Quaternion rotation, Vector3 direction, float shotTime, ulong playerId, int projectileId)
     {
-        var spawnedObj = Instantiate(_networkBulletPrefab, pos, rotation);
+        var spawnedObj = Instantiate(_localBulletPrefab, pos, rotation);
         spawnedObj.ShotTime = shotTime;
         spawnedObj.Origin = pos;
         spawnedObj.Direction = direction;
