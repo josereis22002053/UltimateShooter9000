@@ -29,6 +29,7 @@ public class ApplicationSettings : MonoBehaviour
         public string MatchServerIp;
         public uint RequiredKillsToWin;
         public ushort EloUpdateValue;
+        public int MinEloAllowed;
     }
 
     private static ApplicationSettings _instance;
@@ -88,6 +89,7 @@ public class ApplicationSettings : MonoBehaviour
         appSettings.GameSettings.MatchServerIp = "127.0.0.1";
         appSettings.GameSettings.RequiredKillsToWin = 2;
         appSettings.GameSettings.EloUpdateValue = 10;
+        appSettings.GameSettings.MinEloAllowed = 100;
 
         string appSettingsJson = JsonUtility.ToJson(appSettings, true);
         File.WriteAllText(path, appSettingsJson);

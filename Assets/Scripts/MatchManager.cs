@@ -13,7 +13,7 @@ using System.Text;
 
 public class MatchManager : NetworkBehaviour
 {
-    private int connectedPlayers;
+    private int _connectedPlayers;
 
     public delegate void GameStarting();
     public delegate void GameStarted();
@@ -26,7 +26,6 @@ public class MatchManager : NetworkBehaviour
 
     [SerializeField] private int _blueTeamKills = 0;
     [SerializeField] private int _greenTeamKills = 0;
-    [SerializeField] private int _requiredKillsToWin = 5;
 
     private GameState _currentGameState;
     private Dictionary<ulong, PlayerInfo> _connectedClients;
@@ -35,6 +34,9 @@ public class MatchManager : NetworkBehaviour
 
     private Socket _socket;
     private ushort _port;
+    private uint _requiredKillsToWin;
+    private ushort _eloUpdateValue;
+    private int _minEloAllowed;
 
     private void Awake()
     {
@@ -42,6 +44,9 @@ public class MatchManager : NetworkBehaviour
         gameStarting += StartGame;
         gameStarted += CreatePlayerDictionary;
         GameEnded += UpdatePlayerDatabase;
+        _requiredKillsToWin = ApplicationSettings.Instance.Settings.GameSettings.RequiredKillsToWin;
+        _eloUpdateValue = ApplicationSettings.Instance.Settings.GameSettings.EloUpdateValue;
+        _minEloAllowed = ApplicationSettings.Instance.Settings.GameSettings.MinEloAllowed;
     }
 
     private void Start()
@@ -145,9 +150,9 @@ public class MatchManager : NetworkBehaviour
         if (_currentGameState != GameState.WaitingForPlayers) return;
 
         Debug.Log("Player prefab was instantiated");
-        connectedPlayers++;
+        _connectedPlayers++;
 
-        if (connectedPlayers >= 2)
+        if (_connectedPlayers >= 2)
         {
             _databaseManager = FindObjectOfType<DatabaseManager>();
             OnGameStarting();
@@ -279,22 +284,19 @@ public class MatchManager : NetworkBehaviour
                 newDeaths = playerStats.deaths + _blueTeamKills;
             }
 
-            newElo = player.Team == winner ? playerStats.elo + 10 : playerStats.elo - 10;
+            if (player.Team == winner)
+                newElo = playerStats.elo + _eloUpdateValue;
+            else
+                newElo = Mathf.Max(_minEloAllowed, playerStats.elo - _eloUpdateValue);
 
             _databaseManager.UpdatePlayerStats(player.UserName, newElo, newKills, newDeaths);
         }
     }
 
+
+    // Called by "Back to lobby" button on client
     public void BackToLobby()
     {
-        // var networkManager = FindObjectOfType<NetworkManager>();
-        // networkManager.Shutdown();
-        // Destroy(networkManager.gameObject);
-
-        // var connectionInfoObj = FindObjectOfType<ConnectionInfo>().gameObject;
-        // Destroy(connectionInfoObj);
-
-        // SceneManager.LoadScene(0);
         StartCoroutine(BackToLobbyCR());
     }
 
