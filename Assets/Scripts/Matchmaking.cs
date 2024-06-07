@@ -287,7 +287,13 @@ public class Matchmaking : NetworkBehaviour
 
     private void RemoveClientFromConnectedClients(ulong clientId)
     {
-        ConnectedClientInfo client = _connectedClients.First(c => c.ClientID == clientId);
+        ConnectedClientInfo client = _connectedClients.FirstOrDefault(c => c.ClientID == clientId);
+
+        if (client == null)
+        {
+            Debug.Log("Tried removing client that wasn't yet connected/logged on");
+            return;
+        }
         _connectedClients.Remove(client);
 
         if (_playersInQueue.Contains(client))

@@ -10,6 +10,8 @@ public class ApplicationStarter : MonoBehaviour
     private void Awake()
     {
         //Debug.Log(ApplicationSettings.Instance.Settings.MatchMakingSettings.MatchMakingServerIp);
+        string aux = Application.persistentDataPath;
+        Debug.Log(aux);
     }
 
     private void Start()
@@ -37,6 +39,15 @@ public class ApplicationStarter : MonoBehaviour
         else
         {
             SceneManager.LoadScene(1);
+        }
+    }
+
+    private void Update()
+    {
+        if (Input.GetMouseButton(2))
+        {
+            string aux = Application.persistentDataPath;
+            Debug.Log(aux);
         }
     }
 }
