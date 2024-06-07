@@ -6,5 +6,6 @@ public enum MessageType
     PasswordInvalidSize,
     PasswordContainsWhitespace,
     PasswordNotCorrect,
+    UserAlreadyConnected,
     CreateAccountSuccessful
 }

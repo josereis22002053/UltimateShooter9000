@@ -152,6 +152,9 @@ public class CanvasManager : MonoBehaviour
             case MessageType.PasswordNotCorrect:
                 _error.text = "Incorrect password.";
                 break;
+            case MessageType.UserAlreadyConnected:
+                _error.text = "User is already logged in.";
+                break;
             case MessageType.CreateAccountSuccessful:
                 _error.text = "Account created. Please login.";
                 break;

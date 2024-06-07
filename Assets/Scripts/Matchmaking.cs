@@ -286,6 +286,11 @@ public class Matchmaking : NetworkBehaviour
         //LogEntry newEntry = new LogEntry();
     }
 
+    public bool IsClientConnected(string userName)
+    {
+        return _connectedClients.Any(c => c.UserName == userName);
+    }
+
     private void RemoveClientFromConnectedClients(ulong clientId)
     {
         ConnectedClientInfo client = _connectedClients.FirstOrDefault(c => c.ClientID == clientId);

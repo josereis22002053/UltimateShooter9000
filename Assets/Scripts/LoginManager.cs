@@ -28,31 +28,9 @@ public class LoginManager : NetworkBehaviour
         networkSetup.networkSetupDone += Initialize;
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.F5)) Login();
-    }
-
     private void Initialize()
     {
         _canvasManager.DisplayLoginScreen(!NetworkManager.Singleton.IsServer);
-
-        // if (!IsServer)
-        // {
-        //     Debug.Log("Looking for connected client info");
-        //     var connectedClientInfo = FindObjectOfType<ConnectedClientInfo>();
-        //     if (connectedClientInfo != null)
-        //     {
-        //         Debug.Log("Found connected client info");
-        //         (string name, int elo, int kills, int deaths) playerInfo = _databaseManager.GetPlayerInfo(connectedClientInfo.UserName);
-        //         connectedClientInfo.Elo = playerInfo.elo;
-        //         //Login(connectedClientInfo.UserName, connectedClientInfo.Password);
-        //         //_canvasManager.DisplayLoggedInScreen(playerInfo.name, playerInfo.elo, playerInfo.kills, playerInfo.deaths);
-        //         //AddClientToConnectedClientsServerRpc(playerInfo.name, connectedClientInfo.Password);
-        //     }
-        //     else
-        //         Debug.Log("Didn't find connected client info");
-        // }
     }
 
     public void SignUp()
@@ -172,13 +150,20 @@ public class LoginManager : NetworkBehaviour
         {
             if (_databaseManager.CheckPlayerCredentials(userName, password))
             {
-                // LOGIN ON CLIENT
-                (string name, int elo, int kills, int deaths) playerInfo = _databaseManager.GetPlayerInfo(userName);
-                
-                LoginClientRpc(playerInfo.name, password, playerInfo.elo, playerInfo.kills, playerInfo.deaths, clientRpcParams);
+                if (_matchmakingManager.IsClientConnected(userName))
+                {
+                    DisplayMessageClientRpc(MessageType.UserAlreadyConnected, clientRpcParams);
+                }
+                else
+                {
+                    // LOGIN ON CLIENT
+                    (string name, int elo, int kills, int deaths) playerInfo = _databaseManager.GetPlayerInfo(userName);
+                    
+                    LoginClientRpc(playerInfo.name, password, playerInfo.elo, playerInfo.kills, playerInfo.deaths, clientRpcParams);
 
-                // Add to connected clients
-                _matchmakingManager.AddClientToConnectedClients(userName, password, playerInfo.elo, clientId);
+                    // Add to connected clients
+                    _matchmakingManager.AddClientToConnectedClients(userName, password, playerInfo.elo, clientId);
+                }
             }
             else
             {
