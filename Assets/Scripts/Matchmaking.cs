@@ -360,6 +360,21 @@ public class Matchmaking : NetworkBehaviour
         
         var clientId = serverRpcParams.Receive.SenderClientId;
 
+        if (_availablePorts.Count == 0)
+        {
+            var clientRpcParams = new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams
+                {
+                    TargetClientIds = new ulong[] { clientId }
+                }
+            };
+
+            UpdateMatchmakingStatusClientRpc(MatchmakingStatus.NoAvailableServers, clientRpcParams);
+            Debug.Log("No available ports");
+            return;
+        }
+
         if (_playersInQueue.Any(p => p.ClientID == clientId)) return;
 
         Debug.Log($"Received server rpc from client {clientId}");
@@ -436,6 +451,22 @@ public class Matchmaking : NetworkBehaviour
 
     private void MatchFound(ulong clientId1, ulong clientId2)
     {
+        if (_availablePorts.Count == 0)
+        {
+            var clientRpcParams2 = new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams
+                {
+                    TargetClientIds = new ulong[] { clientId1, clientId2 }
+                }
+            };
+
+            UpdateMatchmakingStatusClientRpc(MatchmakingStatus.NoAvailableServers, clientRpcParams2);
+            Debug.Log("No available ports");
+            return;
+        }
+
+
         Run("Builds\\UltimateShooter9000.exe", $"--gameServer {_availablePorts[0]} {_matchServerPort}");
         //Run("UltimateShooter9000.exe", $"--gameServer {_availablePorts[0]} {_matchServerPort}");
 

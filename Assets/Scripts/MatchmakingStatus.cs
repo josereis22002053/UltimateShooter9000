@@ -1,5 +1,6 @@
 public enum MatchmakingStatus
 {
     LookingForOpponent,
-    WaitingForServer
+    WaitingForServer,
+    NoAvailableServers
 }

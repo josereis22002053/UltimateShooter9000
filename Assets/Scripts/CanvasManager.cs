@@ -179,11 +179,14 @@ public class CanvasManager : MonoBehaviour
         switch (status)
         {
             case MatchmakingStatus.LookingForOpponent:
-                if (_matchmakingStatus.text == "")
+                if (_matchmakingStatus.text == "" ||_matchmakingStatus.text == "There are no available servers. Try again later.")
                     _matchmakingStatus.text = "Looking for opponent...";
                 break;
             case MatchmakingStatus.WaitingForServer:
                 _matchmakingStatus.text = "Opponent found! Waiting for server...";
+                break;
+            case MatchmakingStatus.NoAvailableServers:
+                _matchmakingStatus.text = "There are no available servers. Try again later.";
                 break;
             default:
                 _matchmakingStatus.text = "Unknown matchmaking status";
