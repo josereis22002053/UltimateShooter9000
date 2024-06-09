@@ -467,8 +467,8 @@ public class Matchmaking : NetworkBehaviour
         }
 
 
-        Run("Builds\\UltimateShooter9000.exe", $"--gameServer {_availablePorts[0]} {_matchServerPort}");
-        //Run("UltimateShooter9000.exe", $"--gameServer {_availablePorts[0]} {_matchServerPort}");
+        //Run("Builds\\UltimateShooter9000.exe", $"--gameServer {_availablePorts[0]} {_matchServerPort}");
+        Run("UltimateShooter9000.exe", $"--gameServer {_availablePorts[0]} {_matchServerPort}");
 
         _matchServersStartingUp.Add(_availablePorts[0], (clientId1, clientId2));
         _onGoingMatchPorts.Add(_availablePorts[0]);
